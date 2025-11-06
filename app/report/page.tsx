@@ -18,6 +18,7 @@ const VoiceCapture = dynamic(() => import("@/components/VoiceCapture"), { ssr: f
 const MapCard = dynamic(() => import("@/components/MapCard"), { ssr: false, loading: () => <div className="text-sm text-gray-500">Loading map…</div> });
 
 import { generateFullReportPDF, generateFullReportDOCX } from "@/lib/export";
+import { formatTime12, formatDateShort } from "@/lib/time";
 import { saveReport } from "@/lib/reportsClient";
 import { saveDraft as saveOfflineDraft, loadDraft as loadOfflineDraft, draftKeyForReport } from "@/lib/offlineStore";
 
@@ -137,7 +138,7 @@ type FormData = {
   improvementAreas: string;
   signatureDateTime: string;
 
-  /** detail notes shown when a related yes/no is "Yes" */
+  /** detail notes shown when a related yes/no is "No" */
   weatherConditionsNote?: string;
   safetyComplianceNote?: string;
   safetySignageNote?: string;
@@ -337,72 +338,14 @@ export default function Page() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
-  // Map snapshot for PDF (component scope)
-  const [mapForPdfUrl, setMapForPdfUrl] = useState<string>("");
-  const [includeMapInPdf, setIncludeMapInPdf] = useState<boolean>(false);
+  // Map snapshot feature removed
   const [pdfGenerating, setPdfGenerating] = useState(false);
   const [pdfElapsed, setPdfElapsed] = useState(0);
   const [exportMode, setExportMode] = useState<null | 'pdf' | 'docx'>(null);
-  const [autoIncludeSiteMap, setAutoIncludeSiteMap] = useState<boolean>(true);
   const [disclaimerAccepted, setDisclaimerAccepted] = useState<boolean>(false);
   const [disclaimerDismissed, setDisclaimerDismissed] = useState<boolean>(false);
   
-  async function captureStaticMapDataUrl(lat: number, lon: number): Promise<string> {
-    const gkey = (process.env.NEXT_PUBLIC_GOOGLE_STATIC_MAPS_KEY || "").trim();
-    const googleUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lon}&zoom=15&size=1200x600&scale=2&maptype=roadmap&markers=color:green|${lat},${lon}${gkey ? `&key=${gkey}` : ""}`;
-    const osmUrl = `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lon}&zoom=15&size=1600x800&markers=${lat},${lon},lightgreen-pushpin`;
-    try {
-      const primary = gkey ? googleUrl : osmUrl;
-      let res = await fetch(`/api/image-proxy?url=${encodeURIComponent(primary)}`, { cache: 'no-store' });
-      if (!res.ok) {
-        // try OSM as fallback
-        res = await fetch(`/api/image-proxy?url=${encodeURIComponent(osmUrl)}`, { cache: 'no-store' });
-        if (!res.ok) return osmUrl;
-      }
-      let blob = await res.blob();
-      if (!(blob && String((blob as any).type || '').toLowerCase().startsWith('image'))) {
-        // Not an image (likely Google error HTML). Try OSM as fallback.
-        const r2 = await fetch(`/api/image-proxy?url=${encodeURIComponent(osmUrl)}`, { cache: 'no-store' });
-        if (r2.ok) {
-          const b2 = await r2.blob();
-          if (String((b2 as any).type || '').toLowerCase().startsWith('image')) blob = b2; else return osmUrl;
-        } else {
-          return osmUrl;
-        }
-      }
-      const reader = new FileReader();
-      const dataUrl: string = await new Promise((resolve, reject) => {
-        reader.onloadend = () => resolve(String(reader.result));
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
-      return dataUrl;
-    } catch {
-      try {
-        const canvas = document.createElement('canvas');
-        canvas.width = 1200; canvas.height = 600;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.fillStyle = '#eef2f7';
-          ctx.fillRect(0,0,canvas.width, canvas.height);
-          ctx.strokeStyle = '#d1d5db';
-          ctx.lineWidth = 1;
-          for (let x=0; x<=canvas.width; x+=100) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke(); }
-          for (let y=0; y<=canvas.height; y+=100) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke(); }
-          ctx.fillStyle = '#10b981';
-          ctx.beginPath(); ctx.arc(canvas.width/2, canvas.height/2, 12, 0, Math.PI*2); ctx.fill();
-          ctx.strokeStyle = '#065f46'; ctx.lineWidth = 2; ctx.stroke();
-          ctx.fillStyle = '#111827';
-          ctx.font = 'bold 28px Inter, Arial, sans-serif';
-          ctx.fillText('Offline Map Snapshot', 24, 44);
-          ctx.font = '20px Inter, Arial, sans-serif';
-          ctx.fillText(`Lat: ${lat.toFixed(5)}  Lon: ${lon.toFixed(5)}`, 24, 80);
-          return canvas.toDataURL('image/png');
-        }
-      } catch {}
-      return (gkey ? googleUrl : osmUrl);
-    }
-  }
+  // captureStaticMapDataUrl removed with map snapshot feature
 
   // Autosave and restore form progress
   useEffect(() => {
@@ -415,13 +358,7 @@ export default function Page() {
           setForm((f) => ({ ...f, ...saved }));
         }
       }
-      const mapState = localStorage.getItem("nk_report_map");
-      if (mapState) {
-        const m = JSON.parse(mapState);
-        if (m?.mapForPdfUrl) setMapForPdfUrl(m.mapForPdfUrl);
-        if (typeof m?.includeMapInPdf === "boolean") setIncludeMapInPdf(!!m.includeMapInPdf);
-        if (typeof m?.autoIncludeSiteMap === "boolean") setAutoIncludeSiteMap(!!m.autoIncludeSiteMap);
-      }
+      // map state load removed
       (async () => {
         try {
           const key = draftKeyForReport((saved && saved.reportId) || form.reportId);
@@ -484,16 +421,7 @@ export default function Page() {
       }
     };
   }, []);
-
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(
-        "nk_report_map",
-        JSON.stringify({ mapForPdfUrl, includeMapInPdf, autoIncludeSiteMap })
-      );
-    } catch {}
-  }, [mapForPdfUrl, includeMapInPdf, autoIncludeSiteMap]);
+  // map state save removed
 
   useEffect(() => {
     let to: any;
@@ -566,49 +494,10 @@ export default function Page() {
     })();
   }, [form.reportId]);
 
-  useEffect(() => { 
-    if (!autoIncludeSiteMap) return; 
-    const lat = Number(form.lat), lon = Number(form.lon); 
-    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return; 
-    (async ()=>{ 
-      const dataUrl = await captureStaticMapDataUrl(lat, lon); 
-      setMapForPdfUrl(dataUrl); 
-      setIncludeMapInPdf(true); 
-    })(); 
-  }, [autoIncludeSiteMap, form.lat, form.lon]);
+  // Site map auto-include removed
 
   // If lat/lon are not available, try geocoding the address to include a site map automatically
-  useEffect(() => {
-    if (!autoIncludeSiteMap) return;
-    if (mapForPdfUrl) return;
-    const hasCoords = Number.isFinite(Number(form.lat)) && Number.isFinite(Number(form.lon));
-    if (hasCoords) return;
-    const addr = [
-      form.streetAddress,
-      [form.city, form.state].filter(Boolean).join(", "),
-      [form.country, form.zipCode].filter(Boolean).join(" "),
-    ]
-      .filter(Boolean)
-      .map((s) => String(s).trim())
-      .filter(Boolean)
-      .join(", ") || String(form.location || "").trim();
-    if (!addr) return;
-    (async () => {
-      try {
-        const r = await fetch(`/api/geocode?q=${encodeURIComponent(addr)}`, { cache: 'no-store' });
-        const j = await r.json().catch(() => null as any);
-        const lat = Number(j?.lat), lon = Number(j?.lon);
-        if (j?.success && Number.isFinite(lat) && Number.isFinite(lon)) {
-          setForm((f) => ({ ...f, lat: String(lat), lon: String(lon) }));
-          const dataUrl = await captureStaticMapDataUrl(lat, lon);
-          if (dataUrl) {
-            setMapForPdfUrl(dataUrl);
-            setIncludeMapInPdf(true);
-          }
-        }
-      } catch {}
-    })();
-  }, [autoIncludeSiteMap, mapForPdfUrl, form.streetAddress, form.city, form.state, form.country, form.zipCode, form.location]);
+  // Site map geocode + capture removed
 
   useEffect(() => {
     const now = new Date();
@@ -690,9 +579,7 @@ export default function Page() {
       "weatherConditions",
       "safetyCompliance",
       "safetySignage",
-      "workerAttendance",
-      "scheduleCompliance",
-      "materialAvailability",
+      // Removed workerAttendance/scheduleCompliance/materialAvailability from progress calc
       // Notes & signature
       "additionalComments",
       "inspectorSummary",
@@ -731,7 +618,7 @@ export default function Page() {
       .join(", ") || S(form.location);
 
     const purpose = S((form as any).purposeOfFieldVisit);
-    const date = (() => { try { return new Date(form.inspectionDate || "").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }); } catch { return S(form.inspectionDate); } })();
+    const date = formatDateShort(form.inspectionDate) || S(form.inspectionDate);
     const bits: string[] = [];
     if (purpose) bits.push(`${purpose}`);
     if (addr) bits.push(`at ${addr}`);
@@ -1102,7 +989,7 @@ export default function Page() {
                 {/* Report ID */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="reportId">
-                    Report ID
+                    Report ID (If any)
                   </label>
                   <input
                     id="reportId"
@@ -1116,7 +1003,7 @@ export default function Page() {
                 {/* Inspector Name */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="inspectorName">
-                    Name of Field Inspector
+                    Name of Inspector
                   </label>
                   <input
                     id="inspectorName"
@@ -1130,7 +1017,7 @@ export default function Page() {
                 {/* Company Address */}
                 <div className="md:col-span-2">
                   <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="nameandAddressOfCompany">
-                    Name and Address of Inspection Company
+                    Address of Inspection Company
                   </label>
                   <input
                     id="nameandAddressOfCompany"
@@ -1158,7 +1045,7 @@ export default function Page() {
                 {/* Company Name */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="companyName">
-                    Company Name
+                    Inspection Company Name
                   </label>
                   <input
                     id="companyName"
@@ -1226,19 +1113,14 @@ export default function Page() {
                     onChange={(e) => updateField("startInspectionTime", e.target.value)}
                   />
                   <span className="text-xs text-gray-500 mt-1.5 block">
-                    {form.startInspectionTime &&
-                      ` (${new Date(`2000-01-01T${form.startInspectionTime}`).toLocaleTimeString("en-US", {
-                        hour: "numeric",
-                        minute: "2-digit",
-                        hour12: true,
-                      })})`}
+                    {mounted && form.startInspectionTime && ` (${formatTime12(form.startInspectionTime)})`}
                   </span>
                 </div>
 
                 {/* Location */}
                 <div className="md:col-span-2">
                   <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="location">
-                    Inspection Property Address
+                    Address of Inspection Property
                   </label>
                   <input
                     id="location"
@@ -1257,7 +1139,7 @@ export default function Page() {
                   <input
                     id="city"
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#78c850] focus:border-transparent transition-shadow"
-                    placeholder="Haridwar"
+                    placeholder="New York"
                     value={form.city}
                     onChange={(e) => updateField("city", e.target.value)}
                   />
@@ -1271,7 +1153,7 @@ export default function Page() {
                   <input
                     id="state"
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#78c850] focus:border-transparent transition-shadow"
-                    placeholder="Uttarakhand"
+                    placeholder="New Jersey"
                     value={form.state}
                     onChange={(e) => updateField("state", e.target.value)}
                   />
@@ -1285,7 +1167,7 @@ export default function Page() {
                   <input
                     id="country"
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#78c850] focus:border-transparent transition-shadow"
-                    placeholder="India"
+                    placeholder="USA"
                     value={form.country}
                     onChange={(e) => updateField("country", e.target.value)}
                   />
@@ -1299,7 +1181,7 @@ export default function Page() {
                   <input
                     id="zipCode"
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#78c850] focus:border-transparent transition-shadow"
-                    placeholder="249407"
+                    placeholder="XXXXX"
                     value={form.zipCode}
                     onChange={(e) => updateField("zipCode", e.target.value)}
                   />
@@ -1332,59 +1214,7 @@ export default function Page() {
                 onCoords={(lat, lon) => { updateField("lat", String(lat)); updateField("lon", String(lon)); }}
               />
               
-              <div className="mt-4 flex flex-wrap items-center gap-3">
-                <label className="inline-flex items-center gap-2 text-sm font-medium text-gray-700">
-                  <input
-                    type="checkbox"
-                    className="w-4 h-4 rounded border-gray-300 text-[#78c850] focus:ring-[#78c850]"
-                    checked={autoIncludeSiteMap}
-                    onChange={(e) => {
-                      const val = e.target.checked;
-                      setAutoIncludeSiteMap(val);
-                      if (!val) setIncludeMapInPdf(false);
-                    }}
-                  />
-                  Auto-include Site Map in PDF
-                </label>
-                <button
-                  type="button"
-                  className="px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                  onClick={async () => {
-                    const lat = Number(form.lat), lon = Number(form.lon);
-                    if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-                      alert("Set a valid address first so coordinates are known.");
-                      return;
-                    }
-                    const dataUrl = await captureStaticMapDataUrl(lat, lon);
-                    setMapForPdfUrl(dataUrl);
-                    setIncludeMapInPdf(true);
-                  }}
-                >
-                  Capture map snapshot
-                </button>
-
-                {mapForPdfUrl && (
-                  <button
-                    type="button"
-                    className="px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                    onClick={() => {
-                      try {
-                        if (!mapForPdfUrl) return;
-                        if (mapForPdfUrl.startsWith('data:')) {
-                          const a = document.createElement('a');
-                          a.href = mapForPdfUrl;
-                          a.download = `site_map_${(form.reportId || 'snapshot')}.png`;
-                          a.click();
-                        } else {
-                          window.open(mapForPdfUrl, '_blank');
-                        }
-                      } catch {}
-                    }}
-                  >
-                    Download map
-                  </button>
-                )}
-              </div>
+              {/* Map PDF controls removed */}
 
               <div className="mt-5">
                 <FlexibleAnswer
@@ -1400,10 +1230,10 @@ export default function Page() {
 
             {/* Background Section */}
             <div className="form-section bg-white rounded-xl p-6 shadow-sm border border-gray-100 fade-in">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">Background</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">Structural Condition Background OR History</h2>
 
               <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="backgroundManual">
-                Background (optional free text)
+                Below (optional)
               </label>
               <textarea
                 id="backgroundManual"
@@ -1433,7 +1263,7 @@ export default function Page() {
 
               <div className="mt-5">
                 <SectionPhotos
-                  title="Background Photos (optional)"
+                  title="Existing Condition"
                   photos={sectionPhotos.background}
                   setPhotos={setPhotoBucket("background")}
                                   />
@@ -1463,8 +1293,8 @@ export default function Page() {
               </div>
             </div>
 
-            {/* Personnel & Work Progress */}
-            <div className="form-section bg-white rounded-xl p-6 shadow-sm border border-gray-100 fade-in">
+            {/* Personnel & Work Progress (removed/hidden) */}
+            <div className="hidden form-section bg-white rounded-xl p-6 shadow-sm border border-gray-100 fade-in">
               <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
                 Personnel & Work Progress
               </h2>
@@ -1529,7 +1359,7 @@ export default function Page() {
 
               <div className="mt-6">
                 <SectionPhotos
-                  title="Inspection / Construction Progress"
+                  title="Inspection / Construction Progress / Field Observation"
                   photos={sectionPhotos.work}
                   setPhotos={setPhotoBucket("work")}
                 />
@@ -1541,7 +1371,7 @@ export default function Page() {
               <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">Field Observation</h2>
 
               <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="fieldObservationText">
-                Field Observation (optional free text)
+                Field Observation 
               </label>
               <textarea
                 id="fieldObservationText"
@@ -1569,7 +1399,7 @@ export default function Page() {
 
               <div className="mt-4">
                 <SectionPhotos
-                  title="Overall Field Condition Photo, Including Equipment"
+                  title=""
                   photos={sectionPhotos.equipment}
                   setPhotos={setPhotoBucket("equipment")}
                                   />
@@ -1579,7 +1409,7 @@ export default function Page() {
             {/* Notes & Summary */}
             <div className="form-section bg-white rounded-xl p-6 shadow-sm border border-gray-100 fade-in">
               <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-                Additional Inspection Notes (if any)
+                Additional Notes (if any)
               </h2>
               <div className="space-y-5">
                 {(
@@ -1608,10 +1438,10 @@ export default function Page() {
             {/* Additional Images */}
             <div className="form-section bg-white rounded-xl p-6 shadow-sm border border-gray-100 fade-in">
               <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-                Additional Images (optional)
+                Add more Photos (optional)
               </h2>
               <SectionPhotos
-                title="Additional Images"
+                title=""
                 photos={sectionPhotos.additional}
                 setPhotos={setPhotoBucket("additional")}
                               />
@@ -1636,11 +1466,8 @@ export default function Page() {
                   setPdfElapsed(0); 
                   const timer = setInterval(() => setPdfElapsed((s) => s + 1), 1000);
                   const photos = { ...adaptedSectionPhotos } as any;
-                  const siteMap = includeMapInPdf && mapForPdfUrl
-                    ? { name: "Site Map", data: mapForPdfUrl, caption: "Site location map" }
-                    : undefined;
                   try { 
-                    await generateFullReportPDF(form as any, photos as any, signatureData, siteMap as any); 
+                    await generateFullReportPDF(form as any, photos as any, signatureData, undefined, { includeSiteMap: false }); 
                   } catch (e) {
                     console.error("PDF generation failed", e);
                     alert("Failed to generate PDF. Please try again or try fewer/lower-res photos.");
@@ -1663,11 +1490,8 @@ export default function Page() {
                   setPdfElapsed(0);
                   const timer = setInterval(() => setPdfElapsed((s) => s + 1), 1000);
                   const photos = { ...adaptedSectionPhotos } as any;
-                  const siteMap = includeMapInPdf && mapForPdfUrl
-                    ? { name: "Site Map", data: mapForPdfUrl, caption: "Site location map" }
-                    : undefined;
                   try {
-                    await generateFullReportDOCX(form as any, photos as any, signatureData, siteMap as any);
+                    await generateFullReportDOCX(form as any, photos as any, signatureData, undefined, { includeSiteMap: false });
                   } finally {
                     clearInterval(timer);
                     setPdfGenerating(false);
@@ -1702,7 +1526,7 @@ export default function Page() {
       {/* Offline Indicator */}
       {mounted && !isOnline && (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-yellow-50 text-yellow-900 border border-yellow-300 px-4 py-3 rounded-lg shadow-lg font-medium">
-          ?? You are offline. Progress is saved locally.
+          Are you offline ?? (Progress is saved locally).
         </div>
       )}
 
