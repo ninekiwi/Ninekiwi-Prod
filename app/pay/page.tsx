@@ -20,22 +20,21 @@ export default function PayPage() {
   const [description, setDescription] = useState("NineKiwi Tool Access");
   const [terms, setTerms] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showModal, setShowModal] = useState(true);
-  const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
-  const [disclaimerDismissed, setDisclaimerDismissed] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [showDisclaimer, setShowDisclaimer] = useState(true);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
+    setHydrated(true);
     // ensure animated sections become visible
     try {
       document
         .querySelectorAll<HTMLElement>(".animated-element")
         .forEach((el) => el.classList.add("animate-fade-in-up"));
     } catch {}
-    // Check disclaimer acceptance
-    try {
-      const v = localStorage.getItem("nk_disclaimer_accepted");
-      setDisclaimerAccepted(!!v);
-    } catch {}
+    // Always show disclaimer first; open payment modal after user acknowledges
+    setShowModal(false);
+    setShowDisclaimer(true);
     // Prefill user details if logged in
     (async () => {
       try {
@@ -82,6 +81,10 @@ export default function PayPage() {
     e.preventDefault();
     if (!name || !email || !phone || !amount || amount <= 0) {
       alert("Please fill in all required fields with valid information.");
+      return;
+    }
+    if (amount < 499) {
+      alert("Minimum payable amount is 499.");
       return;
     }
     if (!terms) {
@@ -132,14 +135,14 @@ export default function PayPage() {
 
   return (
     <div className="bg-kiwi-light font-body text-kiwi-gray min-h-[100vh] relative overflow-x-hidden">
-      {!disclaimerAccepted && !disclaimerDismissed && (
+      {hydrated && showDisclaimer && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40">
           <div className="relative bg-white max-w-3xl w-[92vw] md:w-[780px] rounded-xl shadow-xl p-6 overflow-auto max-h-[85vh]">
             <button
               type="button"
               aria-label="Close disclaimer"
               className="absolute top-3 right-3 p-2 rounded-md hover:bg-gray-100 text-gray-500"
-              onClick={() => setDisclaimerDismissed(true)}
+              onClick={() => { setShowDisclaimer(false); setShowModal(true); }}
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -162,17 +165,14 @@ export default function PayPage() {
               <button
                 type="button"
                 className="px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                onClick={() => setDisclaimerDismissed(true)}
+                onClick={() => { setShowDisclaimer(false); setShowModal(true); }}
               >
                 Close
               </button>
               <button
                 type="button"
                 className="px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                onClick={() => {
-                  try { localStorage.setItem("nk_disclaimer_accepted", "1"); } catch {}
-                  setDisclaimerAccepted(true);
-                }}
+                onClick={() => { setShowDisclaimer(false); setShowModal(true); }}
               >
                 I Understand
               </button>
@@ -240,7 +240,7 @@ export default function PayPage() {
                     <h3 className="text-lg font-bold text-kiwi-dark mb-1">Payment Details</h3>
                     <div>
                       <label className="block text-sm font-medium text-kiwi-gray mb-1">Payment Amount</label>
-                      <input type="number" min={1} value={amount} onChange={(e) => setAmount(parseInt(e.target.value || "0", 10))} required placeholder="Enter amount" />
+                      <input type="number" min={499} value={amount} onChange={(e) => setAmount(parseInt(e.target.value || "0", 10))} required placeholder="Enter amount" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-kiwi-gray mb-1">Currency</label>
