@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NineKiwi Report Generator - Professional Construction Reports</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'kiwi-green': '#78C850',
+                        'kiwi-dark': '#3E5C2F',
+                        'kiwi-light': '#F0F5EC',
+                        'kiwi-brown': '#8C6239',
+                        'kiwi-tan': '#D9C6A3',
+                        'kiwi-gray': '#4A5568',
+                        'kiwi-black': '#1A202C',
+                    },
+                    fontFamily: {
+                        'heading': ['Space Grotesk', 'sans-serif'],
+                        'body': ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .form-section {
+            transition: all 0.3s ease;
+        }
+        
+        .form-section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .progress-bar {
+            transition: width 0.5s ease-in-out;
+        }
+        
+        .report-preview {
+            font-family: 'Times New Roman', serif;
+            line-height: 1.6;
+            font-size: 12px;
+        }
+        
+        .signature-pad {
+            border: 2px dashed #78C850;
+            border-radius: 8px;
+            cursor: crosshair;
+        }
+
+        .star-rating {
+            display: flex;
+            gap: 2px;
+        }
+
+        .star {
+            font-size: 1.5rem;
+            color: #D1D5DB;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .star:hover,
+        .star.active {
+            color: #FFC107;
+        }
+
+        .weather-icon {
+            font-size: 2rem;
+            margin-right: 0.5rem;
+        }
+
+        .weather-card {
+            background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+            border: 1px solid #2196F3;
+        }
+        
+        @media print {
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+
+<body class="bg-kiwi-light font-body text-kiwi-gray min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-kiwi-green/20">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-kiwi-green rounded-lg flex items-center justify-center">
+                        <span class="text-white font-bold text-lg">NK</span>
+                    </div>
+                    <h1 class="text-2xl font-heading font-bold text-kiwi-dark">
+                        nine<span class="text-kiwi-green">kiwi</span> Report Generator
+                    </h1>
+                </div>
+                <div class="text-sm text-kiwi-gray">
+                    Professional Construction Reports
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-6 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Form Section -->
+            <div class="space-y-6">
+                <!-- Progress Bar -->
+                <div class="bg-white rounded-xl p-4 shadow-sm">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-medium text-kiwi-gray">Report Progress</span>
+                        <span class="text-sm text-kiwi-green font-semibold" id="progressText">0%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-kiwi-green h-2 rounded-full progress-bar" id="progressBar" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Project Details -->
+                <div class="form-section bg-white rounded-xl p-6 shadow-sm fade-in">
+                    <h2 class="text-xl font-semibold text-kiwi-dark mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-kiwi-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                        </svg>
+                        Project Details
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-kiwi-gray mb-2">Project Name</label>
+                            <input type="text" id="projectName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-kiwi-green focus:border-transparent" placeholder="Enter project name" onchange="updateProgress()">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-kiwi-gray mb-2">Inspector Name</label>
+                            <input type="text" id="inspectorName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-kiwi-green focus:border-transparent" placeholder="Enter inspector name" onchange="updateProgress()">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-kiwi-gray mb-2">Location</label>
+                            <input type="text" id="location" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-kiwi-green focus:border-transparent" placeholder="Project location" onchange="updateProgress()">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-kiwi-gray mb-2">Date</label>
+                            <input type="date" id="inspectionDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-kiwi-green focus:border-transparent" onchange="updateProgress(); fetchWeatherData()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Weather Information -->
+                <div class="form-section bg-white rounded-xl p-6 shadow-sm fade-in">
+                    <h2 class="text-xl font-semibold text-kiwi-dark mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-kiwi-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>
+                        </svg>
+                        Weather Conditions
+                    </h2>
+                    
+                    <!-- Weather Card Display -->
+                    <div class="weather-card rounded-lg p-4 mb-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center">
+                                <span class="weather-icon" id="weatherIcon">🌤️</span>
+                                <span class="text-lg font-semibold text-blue-800" id="weatherDisplay">Select weather conditions</span>
+                            </div>
+                            <div class="text-sm text-blue-600" id="weatherTemp">--°C</div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-xs text-blue-700">
+                            <div>Humidity: <span id="humidityDisplay">--%</span></div>
+                            <div>Wind: <span id="windDisplay">-- km/h</span></div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-kiwi-gray mb-2">Weather conditions affecting work today</label>
+                            <div class="star-rating mb-2">
+                                <span class="star" data-rating="1" onclick="setWeatherRating(1)">⭐</span>
+                                <span class="star" data-rating="2" onclick="setWeatherRating(2)">⭐</span>
+                                <span class="star" data-rating="3" onclick="setWeatherRating(3)">⭐</span>
+                                <span class="star" data-rating="4" onclick="setWeatherRating(4)">⭐</span>
+                                <span class="star" data-rating="5" onclick="setWeatherRating(5)">⭐</span>
+                                <input type="hidden" id="weatherConditions" onchange="updateProgress()">
+                            </div>
+                            <div class="text-sm text-gray-500">1 = Poor, 5 = Excellent</div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-kiwi-gray mb-2">Temperature (°C)</label>
+                            <input type="number" id="temperature" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-kiwi-green focus:border-transparent" placeholder="Temperature" onchange="updateProgress(); updateWeatherDisplay()">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-kiwi-gray mb-2">Humidity (%)</label>
+                            <input type="number" id="humidity" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-kiwi-green focus:border-transparent" placeholder="Humidity %" max="100" onchange="updateProgress(); updateWeatherDisplay()">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-kiwi-gray mb-2">Wind Speed (km/h)</label>
+                            <input type="number" id="windSpeed" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-kiwi-green focus:border-transparent" placeholder="Wind speed" onchange="updateProgress(); updateWeatherDisplay()">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-kiwi-gray mb-2">Weather Description</label>
+                            <select id="weatherDescription" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-kiwi-green focus:border-transparent" onchange="updateProgress(); updateWeatherDisplay()">
+                                <option value="">Select weather condition</option>
+                                <option value="Sunny">☀️ Sunny</option>
+                                <option value="Partly Cloudy">⛅ Partly Cloudy</option>
+                                <option value="Cloudy">☁️ Cloudy</option>
+                                <option value="Overcast">🌫️ Overcast</option>
+                                <option value="Light Rain">🌦️ Light Rain</option>
+                                <option value="Heavy Rain">🌧️ Heavy Rain</option>
+                                <option value="Foggy">🌫️ Foggy</option>
+                                <option value="Windy">💨 Windy</option>
+                                <option value="Storm">⛈️ Storm</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Safety & Compliance -->
+                <div class="form-section bg-white rounded-xl p-6 shadow-sm fade-in">
+                    <h2 class="text-xl font-semibold text-kiwi-dark mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-kiwi-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        </svg>
+                        Safety & Compliance
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-kiwi-gray mb-2">Are all safety protocols and PPE requirements being followed?</label>
+                            <div class="star-rating">
+                                <span class="star" data-rating="1" onclick="setSafetyRating(1)">⭐</span>
+                                <span class="star" data-rating="2" onclick="setSafetyRating(2)">⭐</span>
+                                <span class="star" data-rating="3" onclick="setSafetyRating(3)">⭐</span>
+                                <span class="star" data-rating="4" onclick="setSafetyRating(4)">⭐</span>
+                                <span class="star" data-rating="5" onclick="setSafetyRating(5)">⭐</span>
+                                <input type="hidden" id="safetyCompliance" onchange="updateProgress()">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-kiwi-gray mb-2">Is safety signage and site access control in place?</label>
+                            <div class="star-rating">
+                                <span class="star" data-rating="1" onclick="setSafetySignageRating(1)">⭐</span>
+                                <span class="star" data-rating="2" onclick="setSafetySignageRating(2)">⭐</span>
+                                <span class="star" data-rating="3" onclick="setSafetySignageRating(3)">⭐</span>
+                                <span class="star" data-rating="4" onclick="setSafetySignageRating(4)">⭐</span>
+                                <span class="star" data-rating="5" onclick="setSafetySignageRating(5)">⭐</span>
+                                <input type="hidden" id="safetySignage" onchange="updateProgress()">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Personnel and Work Progress -->
+                <div class="form-section bg-white rounded-xl p-6 shadow-sm fade-in">
+                    <h2 class="text-xl font-semibold text-kiwi-dark mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-kiwi-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                        Personnel & Work Progress
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-kiwi-gray mb-2">Number of workers on site</label>
+                            <input type="number" id="numWorkers" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-kiwi-green focus:border-transparent" placeholder="0" onchange="updateProgress()">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-kiwi-gray mb-2">Were all workers present and on time?</label>
+                            <div class="flex space-x-4">
+                                <label class="flex items-center">
+                                    <input type="radio" name="workerAttendance" value="Yes" class="mr-2 text-kiwi-green focus:ring-kiwi-green" onchange="updateProgress()">
+                                    <span>Yes</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="workerAttendance" value="No" class="mr-2 text-kiwi-green focus:ring-kiwi-green" onchange="updateProgress()">
+                                    <span>No</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-kiwi-gray mb-2">Current work progress summary</label>
+                            <textarea id="workProgress" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-kiwi-green focus:border-transparent" placeholder="Describe current work progress..." onchange="updateProgress()"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-kiwi-gray mb-2">Is work progressing according to the schedule?</label>
+                            <div class="flex space-x-4">
+                                <label class="flex items-center">
+                                    <input type="radio" name="scheduleCompliance" value="Yes" class="mr-2 text-kiwi-green focus:ring-kiwi-green" onchange="updateProgress()">
+                                    <span>Yes</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="scheduleCompliance" value="No" class="mr-2 text-kiwi-green focus:ring-kiwi-green" onchange="updateProgress()">
+                                    <span>No</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="scheduleCompliance" value="Ahead" class="mr-2 text-kiwi-green focus:ring-kiwi-green" onchange="updateProgress()">
+                                    <span>Ahead</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-kiwi-gray mb-2">Are required materials available and in usable condition?</label>
+                            <div class="flex space-x-4">
+                                <label class="flex items-center">
+                                    <input type="radio" name="materialAvailability" value="Yes" class="mr-2 text-kiwi-green focus:ring-kiwi-green" onchange="updateProgress()">
+                                    <span>Yes</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="materialAvailability" value="No" class="mr-2 text-kiwi-green focus:ring-kiwi-green" onchange="updateProgress()">
+                                    <span>No</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="materialAvailability" value="Partial" class="mr-2 text-kiwi-green focus:ring-kiwi-green" onchange="updateProgress()">
+                                    <span>Partial</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Equipment & Quality -->
+                <div class="form-section bg-white rounded-xl p-6 shadow-sm fade-in">
+                    <h2 class="text-xl font-semibold text-kiwi-dark mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-kiwi-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        Equipment & Quality
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-kiwi-gray mb-2">Condition of tools, equipment, and machinery</label>
+                            <div class="star-rating">
+                                <span class="star" data-rating="1" onclick="setEquipmentRating(1)">⭐</span>
+                                <span class="star" data-rating="2" onclick="setEquipmentRating(2)">⭐</span>
+                                <span class="star" data-rating="3" onclick="setEquipmentRating(3)">⭐</span>
+                                <span class="star" data-rating="4" onclick="setEquipmentRating(4)">⭐</span>
+                                <span class="star" data-rating="5" onclick="setEquipmentRating(5)">⭐</span>
+                                <input type="hidden" id="equipmentCondition" onchange="updateProgress()">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-kiwi-gray mb-2">Is equipment maintenance up to date?</label>
+                            <div class="flex space-x-4">
+                                <label class="flex items-center">
+                                    <input type="radio" name="maintenanceStatus" value="Yes" class="mr-2 text-kiwi-green focus:ring-kiwi-green" onchange="updateProgress()">
+                                    <span>Yes</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="maintenanceStatus" value="No" class="mr-2 text-kiwi-green focus:ring-kiwi-green" onchange="updateProgress()">
+                                    <span>No</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="maintenanceStatus" value="Partial" class="mr-2 text-kiwi-green focus:ring-kiwi-green" onchange="updateProgress()">
+                                    <span>Partial</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-kiwi-gray mb-2">Quality of workmanship</label>
+                            <div class="star-rating">
+                                <span class="star" data-rating="1" onclick="setWorkmanshipRating(1)">⭐</span>
+                                <span class="star" data-rating="2" onclick="setWorkmanshipRating(2)">⭐</span>
+                                <span class="star" data-rating="3" onclick="setWorkmanshipRating(3)">⭐</span>
+                                <span class="star" data-rating="4" onclick="setWorkmanshipRating(4)">⭐</span>
+                                <span class="star" data-rating="5" onclick="setWorkmanshipRating(5)">⭐</span>
+                                <input type="hidden" id="workmanshipQuality" onchange="updateProgress()">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-kiwi-gray mb-2">Is work being performed according to project specifications?</label>
+                            <div class="flex space-x-4">
+                                <label class="flex items-center">
+                                    <input type="radio" name="specificationCompliance" value="Yes" class="mr-2 text-kiwi-green focus:ring-kiwi-green" onchange="updateProgress()">
+                                    <span>Yes</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="specificationCompliance" value="No" class="mr-2 text-kiwi-green focus:ring-kiwi-green" onchange="updateProgress()">
+                                    <span>No</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="specificationCompliance" value="Mostly" class="mr-2 text-kiwi-green focus:ring-kiwi-green" onchange="updateProgress()">
+                                    <span>Mostly</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Incidents & Site Conditions -->
+                <div class="form-section bg-white rounded-xl p-6 shadow-sm fade-in">
+                    <h2 class="text-xl font-semibold text-kiwi-dark mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-kiwi-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        Incidents & Site Conditions
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-kiwi-gray mb-2">Any incidents, near misses, or hazards observed?</label>
+                            <div class="flex space-x-4">
+                                <label class="flex items-center">
+                                    <input type="radio" name="incidentsHazards" value="Yes" class="mr-2 text-kiwi-green focus:ring-kiwi-green" onchange="updateProgress()">
+                                    <span>Yes</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="incidentsHazards" value="No" class="mr-2 text-kiwi-green focus:ring-kiwi-green" onchange="updateProgress()">
+                                    <span>No</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-kiwi-gray mb-2">Housekeeping, cleanliness, and waste management on site</label>
+                            <div class="star-rating">
+                                <span class="star" data-rating="1" onclick="setHousekeepingRating(1)">⭐</span>
+                                <span class="star" data-rating="2" onclick="setHousekeepingRating(2)">⭐</span>
+                                <span class="star" data-rating="3" onclick="setHousekeepingRating(3)">⭐</span>
+                                <span class="star" data-rating="4" onclick="setHousekeepingRating(4)">⭐</span>
+                                <span class="star" data-rating="5" onclick="setHousekeepingRating(5)">⭐</span>
+                                <input type="hidden" id="siteHousekeeping" onchange="updateProgress()">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-kiwi-gray mb-2">Any site visits from stakeholders or inspectors today?</label>
+                            <div class="flex space-x-4">
+                                <label class="flex items-center">
+                                    <input type="radio" name="stakeholderVisits" value="Yes" class="mr-2 text-kiwi-green focus:ring-kiwi-green" onchange="updateProgress()">
+                                    <span>Yes</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="stakeholderVisits" value="No" class="mr-2 text-kiwi-green focus:ring-kiwi-green" onchange="updateProgress()">
+                                    <span>No</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- General Notes & Summary -->
+                <div class="form-section bg-white rounded-xl p-6 shadow-sm fade-in">
+                    <h2 class="text-xl font-semibold text-kiwi-dark mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-kiwi-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                        </svg>
+                        General Notes & Summary
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-kiwi-gray mb-2">Additional comments or observations</label>
+                            <textarea id="additionalComments" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-kiwi-green focus:border-transparent" placeholder="Any additional observations, notes, or details..." onchange="updateProgress()"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-kiwi-gray mb-2">Inspector's Summary</label>
+                            <textarea id="inspectorSummary" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-kiwi-green focus:border-transparent" placeholder="Overall assessment and key findings..." onchange="updateProgress()"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-kiwi-gray mb-2">Recommendations for next inspection</label>
+                            <textarea id="recommendations" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-kiwi-green focus:border-transparent" placeholder="Recommendations and action items..." onchange="updateProgress()"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quality Survey -->
+                <div class="form-section bg-white rounded-xl p-6 shadow-sm fade-in">
+                    <h2 class="text-xl font-semibold text-kiwi-dark mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-kiwi-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                        </svg>
+                        Quality Survey
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-kiwi-gray mb-2">Overall project quality rating</label>
+                            <div class="star-rating">
+                                <span class="star" data-rating="1" onclick="setOverallRating(1)">⭐</span>
+                                <span class="star" data-rating="2" onclick="setOverallRating(2)">⭐</span>
+                                <span class="star" data-rating="3" onclick="setOverallRating(3)">⭐</span>
+                                <span class="star" data-rating="4" onclick="setOverallRating(4)">⭐</span>
+                                <span class="star" data-rating="5" onclick="setOverallRating(5)">⭐</span>
+                                <input type="hidden" id="qualityRating" onchange="updateProgress()">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-kiwi-gray mb-2">Communication with project team</label>
+                            <div class="star-rating">
+                                <span class="star" data-rating="1" onclick="setCommunicationRating(1)">⭐</span>
+                                <span class="star" data-rating="2" onclick="setCommunicationRating(2)">⭐</span>
+                                <span class="star" data-rating="3" onclick="setCommunicationRating(3)">⭐</span>
+                                <span class="star" data-rating="4" onclick="setCommunicationRating(4)">⭐</span>
+                                <span class="star" data-rating="5" onclick="setCommunicationRating(5)">⭐</span>
+                                <input type="hidden" id="communicationRating" onchange="updateProgress()">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-kiwi-gray mb-2">Would you recommend this contractor/team for future projects?</label>
+                            <div class="flex space-x-4">
+                                <label class="flex items-center">
+                                    <input type="radio" name="recommendationRating" value="Yes" class="mr-2 text-kiwi-green focus:ring-kiwi-green" onchange="updateProgress()">
+                                    <span>Yes</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="recommendationRating" value="No" class="mr-2 text-kiwi-green focus:ring-kiwi-green" onchange="updateProgress()">
+                                    <span>No</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="recommendationRating" value="Maybe" class="mr-2 text-kiwi-green focus:ring-kiwi-green" onchange="updateProgress()">
+                                    <span>Maybe</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-kiwi-gray mb-2">Areas for improvement</label>
+                            <textarea id="improvementAreas" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-kiwi-green focus:border-transparent" placeholder="Suggest areas where the team or project could improve..." onchange="updateProgress()"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Photo Upload -->
+                <div class="form-section bg-white rounded-xl p-6 shadow-sm fade-in">
+                    <h2 class="text-xl font-semibold text-kiwi-dark mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-kiwi-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        Photo Evidence
+                    </h2>
+                    <div class="border-2 border-dashed border-kiwi-green rounded-lg p-6 text-center">
+                        <input type="file" id="photoUpload" accept="image/*" multiple class="hidden" onchange="handlePhotoUpload()">
+                        <div class="text-kiwi-green mb-2">
+                            <svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                            </svg>
+                        </div>
+                        <p class="text-kiwi-gray mb-2">Click to upload or drag and drop photos</p>
+                        <button type="button" onclick="document.getElementById('photoUpload').click()" class="bg-kiwi-green text-white px-4 py-2 rounded-lg hover:bg-kiwi-dark transition">
+                            Choose Photos
+                        </button>
+                    </div>
+                    <div id="photoPreview" class="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4"></div>
+                </div>
+
+                <!-- Digital Signature -->
+                <div class="form-section bg-white rounded-xl p-6 shadow-sm fade-in">
+                    <h2 class="text-xl font-semibold text-kiwi-dark mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-kiwi-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                        </svg>
+                        Digital Signature
+                    </h2>
+                    <div class="space-y-4">
+                        <div class="flex gap-4">
+                            <button type="button" id="drawSignatureBtn" onclick="showSignatureMethod('draw')" class="flex-1 bg-kiwi-green text-white px-4 py-2 rounded-lg hover:bg-kiwi-dark transition">
+                                Draw Signature
+                            </button>
+                            <button type="button" id="uploadSignatureBtn" onclick="showSignatureMethod('upload')" class="flex-1 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition">
+                                Upload Signature
+                            </button>
+                        </div>
+                        
+                        <!-- Draw Signature Section -->
+                        <div id="drawSignatureSection">
+                            <label class="block text-sm font-medium text-kiwi-gray mb-2">Draw Inspector Signature</label>
+                            <canvas id="signaturePad" width="400" height="150" class="signature-pad border bg-gray-50 w-full max-w-md"></canvas>
+                            <div class="flex gap-2 mt-2">
+                                <button type="button" onclick="clearSignature()" class="text-sm bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600 transition">
+                                    Clear
+                                </button>
+                                <button type="button" onclick="saveSignature()" class="text-sm bg-kiwi-green text-white px-3 py-1 rounded hover:bg-kiwi-dark transition">
+                                    Save Signature
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Upload Signature Section -->
+                        <div id="uploadSignatureSection" style="display: none;">
+                            <label class="block text-sm font-medium text-kiwi-gray mb-2">Upload Signature Image</label>
+                            <div class="border-2 border-dashed border-kiwi-green rounded-lg p-4 text-center">
+                                <input type="file" id="signatureImageUpload" accept="image/*" class="hidden" onchange="handleSignatureImageUpload()">
+                                <div class="text-kiwi-green mb-2">
+                                    <svg class="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                    </svg>
+                                </div>
+                                <p class="text-kiwi-gray text-sm mb-2">Click to upload signature image</p>
+                                <button type="button" onclick="document.getElementById('signatureImageUpload').click()" class="bg-kiwi-green text-white px-3 py-1 text-sm rounded hover:bg-kiwi-dark transition">
+                                    Choose Image
+                                </button>
+                            </div>
+                            <div id="uploadedSignaturePreview" class="mt-2"></div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-kiwi-gray mb-2">Signature Date & Time</label>
+                            <input type="datetime-local" id="signatureDateTime" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-kiwi-green focus:border-transparent" onchange="updateProgress()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button onclick="generateReport()" class="flex-1 bg-kiwi-green hover:bg-kiwi-dark text-white font-semibold py-3 px-6 rounded-lg transition duration-300 flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Generate PDF Report
+                    </button>
+                    <button onclick="generateWordReport()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Generate Word Report
+                    </button>
+                </div>
+            </div>
+
+            <!-- Preview Section -->
+            <div class="space-y-6">
+                <div class="bg-white rounded-xl p-6 shadow-sm sticky top-6">
+                    <h2 class="text-xl font-semibold text-kiwi-dark mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-kiwi-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                        Live Preview
+                    </h2>
+                    
+                    <!-- Report Preview -->
+                    <div id="reportPreview" class="report-preview border border-gray-200 rounded-lg p-6 bg-gray-50 min-h-96">
+                        <div class="text-center text-gray-500">
+                            <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            <p class="text-lg font-medium">Report Preview</p>
+                            <p class="text-sm mt-2">Fill out the form to see your report preview</p>
+                        </div>
+                    </div>
+
+                    <!-- Auto-Generated Summary -->
+                    <div class="mt-6">
+                        <h3 class="text-lg font-semibold text-kiwi-dark mb-3 flex items-center">
+                            <svg class="w-4 h-4 mr-2 text-kiwi-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Auto-Generated Summary
+                        </h3>
+                        <div id="autoSummary" class="bg-kiwi-light border border-kiwi-green/20 rounded-lg p-4 text-sm">
+                            <p class="text-kiwi-gray italic">Summary will be generated automatically based on your inputs</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let uploadedPhotos = [];
+        let signaturePad = null;
+        let isDrawing = false;
+        let signatureData = null;
+        let currentSignatureMethod = 'draw';
+        
+        // Initialize date to today and signature canvas
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date();
+            document.getElementById('inspectionDate').value = today.toISOString().split('T')[0];
+            document.getElementById('signatureDateTime').value = today.toISOString().slice(0, 16);
+            initSignaturePad();
+        });
+
+        // Star rating functions
+        function setWeatherRating(rating) {
+            document.getElementById('weatherConditions').value = rating;
+            updateStarDisplay('weatherConditions', rating);
+            updateProgress();
+        }
+
+        function setSafetyRating(rating) {
+            document.getElementById('safetyCompliance').value = rating;
+            updateStarDisplay('safetyCompliance', rating);
+            updateProgress();
+        }
+
+        function setSafetySignageRating(rating) {
+            document.getElementById('safetySignage').value = rating;
+            updateStarDisplay('safetySignage', rating);
+            updateProgress();
+        }
+
+        function setEquipmentRating(rating) {
+            document.getElementById('equipmentCondition').value = rating;
+            updateStarDisplay('equipmentCondition', rating);
+            updateProgress();
+        }
+
+        function setWorkmanshipRating(rating) {
+            document.getElementById('workmanshipQuality').value = rating;
+            updateStarDisplay('workmanshipQuality', rating);
+            updateProgress();
+        }
+
+        function setHousekeepingRating(rating) {
+            document.getElementById('siteHousekeeping').value = rating;
+            updateStarDisplay('siteHousekeeping', rating);
+            updateProgress();
+        }
+
+        function setOverallRating(rating) {
+            document.getElementById('qualityRating').value = rating;
+            updateStarDisplay('qualityRating', rating);
+            updateProgress();
+        }
+
+        function setCommunicationRating(rating) {
+            document.getElementById('communicationRating').value = rating;
+            updateStarDisplay('communicationRating', rating);
+            updateProgress();
+        }
+
+        function updateStarDisplay(fieldId, rating) {
+            const field = document.getElementById(fieldId);
+            const container = field.parentNode;
+            const stars = container.querySelectorAll('.star');
+            
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+        }
+
+        // Weather display updates
+        function updateWeatherDisplay() {
+            const temp = document.getElementById('temperature').value;
+            const humidity = document.getElementById('humidity').value;
+            const windSpeed = document.getElementById('windSpeed').value;
+            const description = document.getElementById('weatherDescription').value;
+            
+            document.getElementById('weatherTemp').textContent = temp ? temp + '°C' : '--°C';
+            document.getElementById('humidityDisplay').textContent = humidity ? humidity + '%' : '--%';
+            document.getElementById('windDisplay').textContent = windSpeed ? windSpeed + ' km/h' : '-- km/h';
+            
+            if (description) {
+                const option = document.querySelector(`#weatherDescription option[value="${description}"]`);
+                document.getElementById('weatherDisplay').textContent = option ? option.textContent : description;
+                
+                // Update weather icon
+                const iconMap = {
+                    'Sunny': '☀️',
+                    'Partly Cloudy': '⛅',
+                    'Cloudy': '☁️',
+                    'Overcast': '🌫️',
+                    'Light Rain': '🌦️',
+                    'Heavy Rain': '🌧️',
+                    'Foggy': '🌫️',
+                    'Windy': '💨',
+                    'Storm': '⛈️'
+                };
+                document.getElementById('weatherIcon').textContent = iconMap[description] || '🌤️';
+            } else {
+                document.getElementById('weatherDisplay').textContent = 'Select weather conditions';
+                document.getElementById('weatherIcon').textContent = '🌤️';
+            }
+        }
+
+        // Signature methods
+        function showSignatureMethod(method) {
+            currentSignatureMethod = method;
+            
+            if (method === 'draw') {
+                document.getElementById('drawSignatureSection').style.display = 'block';
+                document.getElementById('uploadSignatureSection').style.display = 'none';
+                document.getElementById('drawSignatureBtn').classList.remove('bg-gray-500', 'hover:bg-gray-600');
+                document.getElementById('drawSignatureBtn').classList.add('bg-kiwi-green', 'hover:bg-kiwi-dark');
+                document.getElementById('uploadSignatureBtn').classList.remove('bg-kiwi-green', 'hover:bg-kiwi-dark');
+                document.getElementById('uploadSignatureBtn').classList.add('bg-gray-500', 'hover:bg-gray-600');
+            } else {
+                document.getElementById('drawSignatureSection').style.display = 'none';
+                document.getElementById('uploadSignatureSection').style.display = 'block';
+                document.getElementById('uploadSignatureBtn').classList.remove('bg-gray-500', 'hover:bg-gray-600');
+                document.getElementById('uploadSignatureBtn').classList.add('bg-kiwi-green', 'hover:bg-kiwi-dark');
+                document.getElementById('drawSignatureBtn').classList.remove('bg-kiwi-green', 'hover:bg-kiwi-dark');
+                document.getElementById('drawSignatureBtn').classList.add('bg-gray-500', 'hover:bg-gray-600');
+            }
+        }
+
+        function handleSignatureImageUpload() {
+            const fileInput = document.getElementById('signatureImageUpload');
+            const file = fileInput.files[0];
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    signatureData = e.target.result;
+                    const preview = document.getElementById('uploadedSignaturePreview');
+                    preview.innerHTML = `
+                        <img src="${signatureData}" alt="Uploaded Signature" class="max-h-20 border rounded mt-2">
+                        <p class="text-sm text-green-600 mt-1">Signature uploaded successfully!</p>
+                    `;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        function initSignaturePad() {
+            const canvas = document.getElementById('signaturePad');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('touchstart', startDrawing);
+            canvas.addEventListener('touchmove', draw);
+            canvas.addEventListener('touchend', stopDrawing);
+            
+            function startDrawing(e) {
+                isDrawing = true;
+                draw(e);
+            }
+            
+            function draw(e) {
+                if (!isDrawing) return;
+                
+                const rect = canvas.getBoundingClientRect();
+                const x = (e.clientX || e.touches[0].clientX) - rect.left;
+                const y = (e.clientY || e.touches[0].clientY) - rect.top;
+                
+                ctx.lineWidth = 2;
+                ctx.lineCap = 'round';
+                ctx.strokeStyle = '#1A202C';
+                
+                ctx.lineTo(x, y);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+            }
+            
+            function stopDrawing() {
+                if (isDrawing) {
+                    isDrawing = false;
+                    ctx.beginPath();
+                }
+            }
+        }
+        
+        function clearSignature() {
+            const canvas = document.getElementById('signaturePad');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            signatureData = null;
+        }
+        
+        function saveSignature() {
+            const canvas = document.getElementById('signaturePad');
+            signatureData = canvas.toDataURL();
+            alert('Signature saved!');
+        }
+        
+        async function fetchWeatherData() {
+            // Simulated weather data - In a real application, you would call a weather API
+            const weatherData = {
+                temperature: Math.round(Math.random() * 30 + 5),
+                humidity: Math.round(Math.random() * 50 + 30),
+                windSpeed: Math.round(Math.random() * 20 + 5),
+                description: ['Sunny', 'Partly Cloudy', 'Cloudy', 'Light Rain', 'Overcast'][Math.floor(Math.random() * 5)]
+            };
+            
+            document.getElementById('temperature').value = weatherData.temperature;
+            document.getElementById('humidity').value = weatherData.humidity;
+            document.getElementById('windSpeed').value = weatherData.windSpeed;
+            document.getElementById('weatherDescription').value = weatherData.description;
+            
+            updateWeatherDisplay();
+            updateProgress();
+        }
+        
+        function updateProgress() {
+            const fields = [
+                'projectName', 'inspectorName', 'location', 'inspectionDate',
+                'temperature', 'humidity', 'windSpeed', 'weatherDescription', 'weatherConditions',
+                'safetyCompliance', 'safetySignage', 'numWorkers', 'workerAttendance',
+                'workProgress', 'scheduleCompliance', 'materialAvailability',
+                'equipmentCondition', 'maintenanceStatus', 'workmanshipQuality',
+                'specificationCompliance', 'incidentsHazards', 'siteHousekeeping', 
+                'stakeholderVisits', 'additionalComments', 'inspectorSummary',
+                'recommendations', 'qualityRating', 'communicationRating',
+                'recommendationRating', 'improvementAreas', 'signatureDateTime'
+            ];
+            
+            let filledFields = 0;
+            fields.forEach(fieldId => {
+                if (['projectName', 'inspectorName', 'location', 'inspectionDate', 
+                     'temperature', 'humidity', 'windSpeed', 'weatherDescription',
+                     'numWorkers', 'workProgress', 'additionalComments', 
+                     'inspectorSummary', 'recommendations', 'improvementAreas', 
+                     'signatureDateTime', 'weatherConditions', 'safetyCompliance', 
+                     'safetySignage', 'equipmentCondition', 'workmanshipQuality',
+                     'siteHousekeeping', 'qualityRating', 'communicationRating'].includes(fieldId)) {
+                    const field = document.getElementById(fieldId);
+                    if (field && field.value.trim() !== '') {
+                        filledFields++;
+                    }
+                } else {
+                    const field = document.querySelector(`input[name="${fieldId}"]:checked`);
+                    if (field) {
+                        filledFields++;
+                    }
+                }
+            });
+            
+            const progress = Math.round((filledFields / fields.length) * 100);
+            document.getElementById('progressBar').style.width = progress + '%';
+            document.getElementById('progressText').textContent = progress + '%';
+            
+            updatePreview();
+            generateAutoSummary();
+        }
+        
+        function handlePhotoUpload() {
+            const fileInput = document.getElementById('photoUpload');
+            const files = Array.from(fileInput.files);
+            
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    uploadedPhotos.push({
+                        name: file.name,
+                        data: e.target.result
+                    });
+                    displayPhotoPreview();
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        function displayPhotoPreview() {
+            const preview = document.getElementById('photoPreview');
+            preview.innerHTML = '';
+            
+            uploadedPhotos.forEach((photo, index) => {
+                const photoDiv = document.createElement('div');
+                photoDiv.className = 'relative group';
+                photoDiv.innerHTML = `
+                    <img src="${photo.data}" alt="${photo.name}" class="w-full h-24 object-cover rounded-lg shadow-sm">
+                    <button onclick="removePhoto(${index})" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                        ×
+                    </button>
+                `;
+                preview.appendChild(photoDiv);
+            });
+        }
+        
+        function removePhoto(index) {
+            uploadedPhotos.splice(index, 1);
+            displayPhotoPreview();
+        }
+        
+        function updatePreview() {
+            const data = gatherFormData();
+            if (!data.projectName) {
+                document.getElementById('reportPreview').innerHTML = `
+                    <div class="text-center text-gray-500">
+                        <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        <p class="text-lg font-medium">Report Preview</p>
+                        <p class="text-sm mt-2">Fill out the form to see your report preview</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const previewHtml = generateReportHTML(data);
+            document.getElementById('reportPreview').innerHTML = previewHtml;
+        }
+        
+        function generateAutoSummary() {
+            const data = gatherFormData();
+            if (!data.projectName) {
+                document.getElementById('autoSummary').innerHTML = '<p class="text-kiwi-gray italic">Summary will be generated automatically based on your inputs</p>';
+                return;
+            }
+            
+            let overallStatus = "satisfactory";
+            let criticalIssues = [];
+            let positivePoints = [];
+            let recommendations = [];
+            
+            // Convert star ratings to descriptive text
+            function getStarRatingText(rating) {
+                const ratingValue = parseInt(rating) || 0;
+                if (ratingValue >= 4) return "Excellent";
+                if (ratingValue === 3) return "Good";
+                if (ratingValue === 2) return "Fair";
+                return "Poor";
+            }
+            
+            // Analyze safety
+            const safetyRating = parseInt(data.safetyCompliance) || 0;
+            const signageRating = parseInt(data.safetySignage) || 0;
+            if (safetyRating <= 2 || signageRating <= 2) {
+                criticalIssues.push("safety compliance issues");
+                overallStatus = "requires immediate attention";
+                recommendations.push("implement additional safety measures");
+            } else if (safetyRating >= 4 && signageRating >= 4) {
+                positivePoints.push("excellent safety compliance");
+            }
+            
+            // Analyze quality
+            const workmanshipRating = parseInt(data.workmanshipQuality) || 0;
+            if (workmanshipRating <= 2 || data.specificationCompliance === 'No') {
+                criticalIssues.push("quality control issues");
+                recommendations.push("implement additional quality checks");
+                if (overallStatus === "satisfactory") overallStatus = "needs attention";
+            } else if (workmanshipRating >= 4 && data.specificationCompliance === 'Yes') {
+                positivePoints.push("high quality workmanship");
+            }
+            
+            // Check for incidents
+            if (data.incidentsHazards === 'Yes') {
+                criticalIssues.push("safety incidents reported");
+                overallStatus = "requires immediate attention";
+                recommendations.push("conduct safety review and implement corrective measures");
+            }
+            
+            // Analyze housekeeping
+            const housekeepingRating = parseInt(data.siteHousekeeping) || 0;
+            if (housekeepingRating <= 2) {
+                criticalIssues.push("poor site housekeeping");
+                recommendations.push("improve site cleanliness and organization");
+            } else if (housekeepingRating >= 4) {
+                positivePoints.push("excellent site organization");
+            }
+            
+            // Weather impact
+            let weatherImpact = "";
+            const weatherRating = parseInt(data.weatherConditions) || 0;
+            if (weatherRating <= 2) {
+                weatherImpact = " Weather conditions may have impacted productivity.";
+                recommendations.push("monitor weather forecasts for planning");
+            } else if (weatherRating >= 4) {
+                weatherImpact = " Favorable weather conditions supported work progress.";
+            }
+            
+            // Quality rating analysis
+            const qualityRating = parseInt(data.qualityRating) || 0;
+            if (qualityRating >= 4) {
+                positivePoints.push(`high overall quality rating (${qualityRating}/5 stars)`);
+            } else if (qualityRating <= 2) {
+                criticalIssues.push(`low overall quality rating (${qualityRating}/5 stars)`);
+                if (overallStatus === "satisfactory") overallStatus = "needs attention";
+            }
+            
+            // Generate comprehensive summary
+            let summary = `<div class="space-y-3">`;
+            
+            // Header with overall status
+            const statusColors = {
+                "satisfactory": "text-green-600",
+                "needs attention": "text-yellow-600", 
+                "requires immediate attention": "text-red-600"
+            };
+            
+            summary += `<div class="font-semibold ${statusColors[overallStatus]} text-lg">
+                📋 Project Status: ${overallStatus.charAt(0).toUpperCase() + overallStatus.slice(1)}
+            </div>`;
+            
+            // Project overview
+            summary += `<div class="text-sm text-kiwi-gray">
+                <strong>Project:</strong> ${data.projectName} | 
+                <strong>Location:</strong> ${data.location || 'N/A'} | 
+                <strong>Workers:</strong> ${data.numWorkers || '0'} | 
+                <strong>Date:</strong> ${formatDate(data.inspectionDate)}
+            </div>`;
+            
+            // Weather summary
+            if (data.temperature || data.weatherDescription) {
+                summary += `<div class="text-sm text-kiwi-gray">
+                    <strong>Weather:</strong> ${data.weatherDescription || 'N/A'} | 
+                    <strong>Rating:</strong> ${weatherRating}/5 stars |
+                    <strong>Temp:</strong> ${data.temperature || 'N/A'}°C | 
+                    <strong>Humidity:</strong> ${data.humidity || 'N/A'}% | 
+                    <strong>Wind:</strong> ${data.windSpeed || 'N/A'} km/h
+                </div>`;
+            }
+            
+            // Critical issues
+            if (criticalIssues.length > 0) {
+                summary += `<div class="bg-red-50 border-l-4 border-red-400 p-3 rounded">
+                    <div class="font-semibold text-red-800">⚠️ Critical Issues:</div>
+                    <ul class="text-red-700 text-sm mt-1 list-disc list-inside">
+                        ${criticalIssues.map(issue => `<li>${issue}</li>`).join('')}
+                    </ul>
+                </div>`;
+            }
+            
+            // Positive points
+            if (positivePoints.length > 0) {
+                summary += `<div class="bg-green-50 border-l-4 border-green-400 p-3 rounded">
+                    <div class="font-semibold text-green-800">✅ Positive Highlights:</div>
+                    <ul class="text-green-700 text-sm mt-1 list-disc list-inside">
+                        ${positivePoints.map(point => `<li>${point}</li>`).join('')}
+                    </ul>
+                </div>`;
+            }
+            
+            // Recommendations
+            if (recommendations.length > 0) {
+                summary += `<div class="bg-blue-50 border-l-4 border-blue-400 p-3 rounded">
+                    <div class="font-semibold text-blue-800">💡 Recommendations:</div>
+                    <ul class="text-blue-700 text-sm mt-1 list-disc list-inside">
+                        ${recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                    </ul>
+                </div>`;
+            }
+            
+            // Additional context
+            if (data.workProgress) {
+                summary += `<div class="bg-gray-50 border-l-4 border-gray-400 p-3 rounded">
+                    <div class="font-semibold text-gray-800">📝 Work Progress Notes:</div>
+                    <p class="text-gray-700 text-sm mt-1">${data.workProgress}</p>
+                </div>`;
+            }
+            
+            if (weatherImpact) {
+                summary += `<div class="text-sm text-kiwi-gray italic">
+                    🌤️ ${weatherImpact}
+                </div>`;
+            }
+            
+            summary += `</div>`;
+            
+            document.getElementById('autoSummary').innerHTML = summary;
+        }
+        
+        function gatherFormData() {
+            return {
+                projectName: document.getElementById('projectName').value,
+                inspectorName: document.getElementById('inspectorName').value,
+                location: document.getElementById('location').value,
+                inspectionDate: document.getElementById('inspectionDate').value,
+                temperature: document.getElementById('temperature').value,
+                humidity: document.getElementById('humidity').value,
+                windSpeed: document.getElementById('windSpeed').value,
+                weatherDescription: document.getElementById('weatherDescription').value,
+                weatherConditions: document.getElementById('weatherConditions').value,
+                safetyCompliance: document.getElementById('safetyCompliance').value,
+                safetySignage: document.getElementById('safetySignage').value,
+                numWorkers: document.getElementById('numWorkers').value,
+                workerAttendance: document.querySelector('input[name="workerAttendance"]:checked')?.value || '',
+                workProgress: document.getElementById('workProgress').value,
+                scheduleCompliance: document.querySelector('input[name="scheduleCompliance"]:checked')?.value || '',
+                materialAvailability: document.querySelector('input[name="materialAvailability"]:checked')?.value || '',
+                equipmentCondition: document.getElementById('equipmentCondition').value,
+                maintenanceStatus: document.querySelector('input[name="maintenanceStatus"]:checked')?.value || '',
+                workmanshipQuality: document.getElementById('workmanshipQuality').value,
+                specificationCompliance: document.querySelector('input[name="specificationCompliance"]:checked')?.value || '',
+                incidentsHazards: document.querySelector('input[name="incidentsHazards"]:checked')?.value || '',
+                siteHousekeeping: document.getElementById('siteHousekeeping').value,
+                stakeholderVisits: document.querySelector('input[name="stakeholderVisits"]:checked')?.value || '',
+                additionalComments: document.getElementById('additionalComments').value,
+                inspectorSummary: document.getElementById('inspectorSummary').value,
+                recommendations: document.getElementById('recommendations').value,
+                qualityRating: document.getElementById('qualityRating').value,
+                communicationRating: document.getElementById('communicationRating').value,
+                recommendationRating: document.querySelector('input[name="recommendationRating"]:checked')?.value || '',
+                improvementAreas: document.getElementById('improvementAreas').value,
+                signatureDateTime: document.getElementById('signatureDateTime').value
+            };
+        }
+        
+        function formatDate(dateString) {
+            if (!dateString) return new Date().toLocaleDateString();
+            return new Date(dateString).toLocaleDateString();
+        }
+
+        function getStarRatingText(rating) {
+            const ratingValue = parseInt(rating) || 0;
+            if (ratingValue === 5) return "Excellent (5/5 ⭐)";
+            if (ratingValue === 4) return "Good (4/5 ⭐)";
+            if (ratingValue === 3) return "Average (3/5 ⭐)";
+            if (ratingValue === 2) return "Below Average (2/5 ⭐)";
+            if (ratingValue === 1) return "Poor (1/5 ⭐)";
+            return "Not Rated";
+        }
+        
+        function generateReportHTML(data) {
+            return `
+                <div class="bg-white p-8 rounded-lg shadow-lg">
+                    <!-- Header -->
+                    <div class="text-center mb-8 pb-6 border-b-2 border-kiwi-green">
+                        <div class="flex items-center justify-center mb-4">
+                            <div class="w-12 h-12 bg-kiwi-green rounded-lg flex items-center justify-center mr-3">
+                                <span class="text-white font-bold text-xl">NK</span>
+                            </div>
+                            <h1 class="text-2xl font-bold text-kiwi-dark">Ninekiwi Inspection Report</h1>
+                        </div>
+                        <p class="text-kiwi-gray">${formatDate(data.inspectionDate)}</p>
+                    </div>
+                    
+                    <!-- Project Details -->
+                    <div class="mb-8">
+                        <h2 class="text-xl font-semibold text-kiwi-dark mb-4 bg-kiwi-light p-3 rounded">Project Details</h2>
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div><strong>Project Name:</strong> ${data.projectName || 'N/A'}</div>
+                            <div><strong>Inspector:</strong> ${data.inspectorName || 'N/A'}</div>
+                            <div><strong>Location:</strong> ${data.location || 'N/A'}</div>
+                            <div><strong>Date:</strong> ${formatDate(data.inspectionDate)}</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Weather Conditions -->
+                    ${(data.temperature || data.weatherDescription) ? `
+                    <div class="mb-8">
+                        <h2 class="text-xl font-semibold text-kiwi-dark mb-4 bg-kiwi-light p-3 rounded">Weather Conditions</h2>
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div><strong>Description:</strong> ${data.weatherDescription || 'N/A'}</div>
+                            <div><strong>Weather Rating:</strong> ${getStarRatingText(data.weatherConditions)}</div>
+                            <div><strong>Temperature:</strong> ${data.temperature || 'N/A'}°C</div>
+                            <div><strong>Humidity:</strong> ${data.humidity || 'N/A'}%</div>
+                            <div><strong>Wind Speed:</strong> ${data.windSpeed || 'N/A'} km/h</div>
+                        </div>
+                    </div>
+                    ` : ''}
+                    
+                    <!-- Inspection Results -->
+                    <div class="mb-8">
+                        <h2 class="text-xl font-semibold text-kiwi-dark mb-4 bg-kiwi-light p-3 rounded">Inspection Results</h2>
+                        <table class="w-full text-sm border-collapse border border-gray-300">
+                            <thead>
+                                <tr class="bg-kiwi-light">
+                                    <th class="border border-gray-300 p-2 text-left">Question</th>
+                                    <th class="border border-gray-300 p-2 text-left">Response</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td class="border border-gray-300 p-2">Are all safety protocols and PPE requirements being followed?</td><td class="border border-gray-300 p-2">${getStarRatingText(data.safetyCompliance)}</td></tr>
+                                <tr><td class="border border-gray-300 p-2">Is safety signage and site access control in place?</td><td class="border border-gray-300 p-2">${getStarRatingText(data.safetySignage)}</td></tr>
+                                <tr><td class="border border-gray-300 p-2">Number of workers on site</td><td class="border border-gray-300 p-2">${data.numWorkers || '0'}</td></tr>
+                                <tr><td class="border border-gray-300 p-2">Were all workers present and on time?</td><td class="border border-gray-300 p-2">${data.workerAttendance || 'N/A'}</td></tr>
+                                <tr><td class="border border-gray-300 p-2">Current work progress summary</td><td class="border border-gray-300 p-2">${data.workProgress || 'N/A'}</td></tr>
+                                <tr><td class="border border-gray-300 p-2">Is work progressing according to the schedule?</td><td class="border border-gray-300 p-2">${data.scheduleCompliance || 'N/A'}</td></tr>
+                                <tr><td class="border border-gray-300 p-2">Are required materials available and in usable condition?</td><td class="border border-gray-300 p-2">${data.materialAvailability || 'N/A'}</td></tr>
+                                <tr><td class="border border-gray-300 p-2">Condition of tools, equipment, and machinery</td><td class="border border-gray-300 p-2">${getStarRatingText(data.equipmentCondition)}</td></tr>
+                                <tr><td class="border border-gray-300 p-2">Is equipment maintenance up to date?</td><td class="border border-gray-300 p-2">${data.maintenanceStatus || 'N/A'}</td></tr>
+                                <tr><td class="border border-gray-300 p-2">Quality of workmanship</td><td class="border border-gray-300 p-2">${getStarRatingText(data.workmanshipQuality)}</td></tr>
+                                <tr><td class="border border-gray-300 p-2">Is work being performed according to project specifications?</td><td class="border border-gray-300 p-2">${data.specificationCompliance || 'N/A'}</td></tr>
+                                <tr><td class="border border-gray-300 p-2">Any incidents, near misses, or hazards observed?</td><td class="border border-gray-300 p-2">${data.incidentsHazards || 'N/A'}</td></tr>
+                                <tr><td class="border border-gray-300 p-2">Housekeeping, cleanliness, and waste management on site</td><td class="border border-gray-300 p-2">${getStarRatingText(data.siteHousekeeping)}</td></tr>
+                                <tr><td class="border border-gray-300 p-2">Any site visits from stakeholders or inspectors today?</td><td class="border border-gray-300 p-2">${data.stakeholderVisits || 'N/A'}</td></tr>
+                                <tr><td class="border border-gray-300 p-2">Additional comments or observations</td><td class="border border-gray-300 p-2">${data.additionalComments || 'N/A'}</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- General Notes & Summary -->
+                    ${(data.inspectorSummary || data.recommendations) ? `
+                    <div class="mb-8">
+                        <h2 class="text-xl font-semibold text-kiwi-dark mb-4 bg-kiwi-light p-3 rounded">General Notes & Summary</h2>
+                        ${data.inspectorSummary ? `<div class="mb-4"><strong>Inspector's Summary:</strong><br/>${data.inspectorSummary}</div>` : ''}
+                        ${data.recommendations ? `<div class="mb-4"><strong>Recommendations:</strong><br/>${data.recommendations}</div>` : ''}
+                    </div>
+                    ` : ''}
+                    
+                    <!-- Quality Survey -->
+                    ${(data.qualityRating || data.communicationRating) ? `
+                    <div class="mb-8">
+                        <h2 class="text-xl font-semibold text-kiwi-dark mb-4 bg-kiwi-light p-3 rounded">Quality Survey</h2>
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div><strong>Overall Quality Rating:</strong> ${getStarRatingText(data.qualityRating)}</div>
+                            <div><strong>Communication Rating:</strong> ${getStarRatingText(data.communicationRating)}</div>
+                            <div><strong>Recommendation:</strong> ${data.recommendationRating || 'N/A'}</div>
+                            ${data.improvementAreas ? `<div class="col-span-2"><strong>Improvement Areas:</strong> ${data.improvementAreas}</div>` : ''}
+                        </div>
+                    </div>
+                    ` : ''}
+                    
+                    ${uploadedPhotos.length > 0 ? `
+                    <!-- Photo Evidence -->
+                    <div class="mb-8">
+                        <h2 class="text-xl font-semibold text-kiwi-dark mb-4 bg-kiwi-light p-3 rounded">Photo Evidence</h2>
+                        <div class="grid grid-cols-2 gap-4">
+                            ${uploadedPhotos.map(photo => `<img src="${photo.data}" alt="${photo.name}" class="w-full h-32 object-cover rounded border">`).join('')}
+                        </div>
+                    </div>
+                    ` : ''}
+                    
+                    <!-- Digital Signature -->
+                    ${signatureData ? `
+                    <div class="mb-8">
+                        <h2 class="text-xl font-semibold text-kiwi-dark mb-4 bg-kiwi-light p-3 rounded">Digital Signature</h2>
+                        <div class="flex items-center gap-6">
+                            <div>
+                                <p class="text-sm font-semibold mb-2">Inspector Signature:</p>
+                                <img src="${signatureData}" alt="Inspector Signature" class="border rounded" style="max-height: 100px;">
+                            </div>
+                            <div class="text-sm">
+                                <p><strong>Date & Time:</strong> ${data.signatureDateTime ? new Date(data.signatureDateTime).toLocaleString() : 'N/A'}</p>
+                                <p><strong>Signed by:</strong> ${data.inspectorName || 'N/A'}</p>
+                            </div>
+                        </div>
+                    </div>
+                    ` : ''}
+                    
+                    <!-- Footer -->
+                    <div class="text-center text-sm text-kiwi-gray pt-6 border-t border-gray-300">
+                        <p>Generated by Ninekiwi - Construction Project Management</p>
+                        <p class="mt-1">Generated on: ${new Date().toLocaleString()}</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        async function generateReport() {
+            const data = gatherFormData();
+            
+            if (!data.projectName) {
+                alert('Please fill in at least the project name to generate a report.');
+                return;
+            }
+            
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            
+            // Create a temporary div for PDF generation
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = generateReportHTML(data);
+            tempDiv.style.width = '210mm';
+            tempDiv.style.padding = '20mm';
+            tempDiv.style.backgroundColor = 'white';
+            tempDiv.style.fontFamily = 'Times New Roman, serif';
+            document.body.appendChild(tempDiv);
+            
+            try {
+                const canvas = await html2canvas(tempDiv, {
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: '#ffffff'
+                });
+                
+                const imgData = canvas.toDataURL('image/png');
+                const imgWidth = 210;
+                const pageHeight = 295;
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                let heightLeft = imgHeight;
+                let position = 0;
+                
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+                
+                while (heightLeft >= 0) {
+                    position = heightLeft - imgHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
+                
+                const filename = `ninekiwi_report_${data.projectName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+                pdf.save(filename);
+                
+            } catch (error) {
+                console.error('Error generating PDF:', error);
+                alert('Error generating PDF. Please try again.');
+            } finally {
+                document.body.removeChild(tempDiv);
+            }
+        }
+        
+        function generateWordReport() {
+            const data = gatherFormData();
+            
+            if (!data.projectName) {
+                alert('Please fill in at least the project name to generate a report.');
+                return;
+            }
+            
+            // Create Word document content
+            const docContent = `
+                NINEKIWI INSPECTION REPORT
+                ${formatDate(data.inspectionDate)}
+                
+                PROJECT DETAILS
+                Project Name: ${data.projectName || 'N/A'}
+                Inspector: ${data.inspectorName || 'N/A'}
+                Location: ${data.location || 'N/A'}
+                Date: ${formatDate(data.inspectionDate)}
+                
+                WEATHER CONDITIONS
+                Description: ${data.weatherDescription || 'N/A'}
+                Weather Rating: ${getStarRatingText(data.weatherConditions)}
+                Temperature: ${data.temperature || 'N/A'}°C
+                Humidity: ${data.humidity || 'N/A'}%
+                Wind Speed: ${data.windSpeed || 'N/A'} km/h
+                
+                INSPECTION RESULTS
+                
+                Safety Protocols & PPE Compliance: ${getStarRatingText(data.safetyCompliance)}
+                Safety Signage & Site Access: ${getStarRatingText(data.safetySignage)}
+                Number of Workers on Site: ${data.numWorkers || '0'}
+                Worker Attendance: ${data.workerAttendance || 'N/A'}
+                Work Progress Summary: ${data.workProgress || 'N/A'}
+                Schedule Compliance: ${data.scheduleCompliance || 'N/A'}
+                Material Availability: ${data.materialAvailability || 'N/A'}
+                Equipment Condition: ${getStarRatingText(data.equipmentCondition)}
+                Maintenance Status: ${data.maintenanceStatus || 'N/A'}
+                Workmanship Quality: ${getStarRatingText(data.workmanshipQuality)}
+                Specification Compliance: ${data.specificationCompliance || 'N/A'}
+                Incidents or Hazards: ${data.incidentsHazards || 'N/A'}
+                Site Housekeeping: ${getStarRatingText(data.siteHousekeeping)}
+                Stakeholder Visits: ${data.stakeholderVisits || 'N/A'}
+                Additional Comments: ${data.additionalComments || 'N/A'}
+                
+                GENERAL NOTES & SUMMARY
+                Inspector's Summary: ${data.inspectorSummary || 'N/A'}
+                Recommendations: ${data.recommendations || 'N/A'}
+                
+                QUALITY SURVEY
+                Overall Quality Rating: ${getStarRatingText(data.qualityRating)}
+                Communication Rating: ${getStarRatingText(data.communicationRating)}
+                Recommendation: ${data.recommendationRating || 'N/A'}
+                Improvement Areas: ${data.improvementAreas || 'N/A'}
+                
+                DIGITAL SIGNATURE
+                Signed by: ${data.inspectorName || 'N/A'}
+                Date & Time: ${data.signatureDateTime ? new Date(data.signatureDateTime).toLocaleString() : 'N/A'}
+                
+                Generated by Ninekiwi - Construction Project Management
+                Generated on: ${new Date().toLocaleString()}
+            `;
+            
+            const blob = new Blob([docContent], {
+                type: 'application/msword'
+            });
+            
+            const filename = `ninekiwi_report_${data.projectName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.doc`;
+            saveAs(blob, filename);
+        }
+        
+        // Initialize progress tracking
+        updateProgress();
+    </script>
+</body>
+</html>
+

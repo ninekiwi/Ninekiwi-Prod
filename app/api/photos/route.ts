@@ -3,7 +3,7 @@ import { dbConnect } from "@/lib/mongodb";
 import { Photo } from "@/models/Photo";
 import { Report } from "@/models/Report";
 import { Payment } from "@/models/Payment";
-import { cloudinary, isCloudinaryConfigured } from "@/lib/cloudinary";
+import { cloudinary } from "@/lib/cloudinary";
 import { getEnv } from "@/lib/env";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -72,9 +72,6 @@ export async function POST(req: NextRequest) {
       { upsert: true, new: true }
     ).lean();
 
-    if (!isCloudinaryConfigured) {
-      return NextResponse.json({ error: "Cloudinary not configured" }, { status: 500 });
-    }
     const uploadRes = await cloudinary.uploader.upload(data, {
       folder: getEnv("CLOUDINARY_FOLDER") || "ninekiwi",
       resource_type: "auto",
