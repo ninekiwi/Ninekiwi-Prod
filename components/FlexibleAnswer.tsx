@@ -9,9 +9,10 @@ export default function FlexibleAnswer({
   value,                        // "Yes" | "No"
   onChange,                     // (mode, value) -> we'll always send ("yesno", ...)
   required = false,
-  noteValue,                    // shown ONLY when value === "No"
+  noteValue,                    // shown ONLY when value matches noteOnValue
   onNoteChange,                 // updates the note when typing
   notePlaceholder = "Add details...",
+  noteOnValue = "No",
 }: {
   id: string;
   label: string;
@@ -22,6 +23,8 @@ export default function FlexibleAnswer({
   noteValue?: string;
   onNoteChange?: (text: string) => void;
   notePlaceholder?: string;
+  /** Which selection should reveal the note input. Defaults to "No" */
+  noteOnValue?: "Yes" | "No";
 }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -50,8 +53,8 @@ export default function FlexibleAnswer({
         ))}
       </div>
 
-      {/* Auto note input when user chooses No (defer until mounted to avoid hydration mismatch) */}
-      {mounted && value === "No" && (
+      {/* Auto note input when user chooses the triggering value (defer until mounted to avoid hydration mismatch) */}
+      {mounted && value === noteOnValue && (
         <div className="mt-2">
           <textarea
             id={`${id}-note`}
@@ -61,7 +64,7 @@ export default function FlexibleAnswer({
             value={noteValue ?? ""}
             onChange={(e) => onNoteChange?.(e.target.value)}
           />
-          <p className="text-xs text-gray-500 mt-1">This field appears because you selected "No".</p>
+          <p className="text-xs text-gray-500 mt-1">This field appears because you selected "{noteOnValue}".</p>
         </div>
       )}
     </div>

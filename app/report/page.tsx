@@ -1222,6 +1222,7 @@ export default function Page() {
                   label="Any Weather Interruption"
                   value={form.weatherConditions}
                   onChange={(m, v) => updateFlex("weatherConditions", m, v)}
+                  noteOnValue="Yes"
                   noteValue={form.weatherConditionsNote}
                   onNoteChange={(t) => updateField("weatherConditionsNote", t)}
                 />
@@ -1549,7 +1550,6 @@ export default function Page() {
     </div>
   );
 }
-
 
 
 
