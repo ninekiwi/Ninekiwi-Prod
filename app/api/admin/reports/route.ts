@@ -4,7 +4,11 @@ import { authOptions } from "@/lib/auth";
 import { dbConnect } from "@/lib/mongodb";
 import { Report } from "@/models/Report";
 import { Photo } from "@/models/Photo";
+<<<<<<< HEAD
 import { cloudinary } from "@/lib/cloudinary";
+=======
+import { cloudinary, isCloudinaryConfigured } from "@/lib/cloudinary";
+>>>>>>> test
 import { User } from "@/models/User";
 
 export const runtime = "nodejs";
@@ -62,7 +66,13 @@ export async function DELETE(req: NextRequest) {
     const photos = await Photo.find({ reportId: doc.reportId }).lean();
     for (const p of photos) {
       try {
+<<<<<<< HEAD
         if ((p as any).publicId) await cloudinary.uploader.destroy((p as any).publicId);
+=======
+        if (isCloudinaryConfigured && (p as any).publicId) {
+          await cloudinary.uploader.destroy((p as any).publicId);
+        }
+>>>>>>> test
       } catch {}
     }
     await Photo.deleteMany({ reportId: doc.reportId });
