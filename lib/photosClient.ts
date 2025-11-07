@@ -11,12 +11,20 @@ export type PhotoItem = {
 };
 
 export async function listPhotos(reportId: string, section?: string): Promise<PhotoItem[]> {
-  const q = new URLSearchParams({ reportId });
-  if (section) q.set("section", section);
-  const res = await fetch(`/api/photos?${q.toString()}`, { cache: "no-store" });
-  if (!res.ok) throw new Error("Failed to list photos");
-  const json = await res.json();
-  return json.items as PhotoItem[];
+  try {
+    const q = new URLSearchParams({ reportId });
+    if (section) q.set("section", section);
+    const res = await fetch(`/api/photos?${q.toString()}`, { cache: "no-store" });
+    if (!res.ok) {
+      // API not available or unauthorized — fail quietly and act like no photos
+      return [];
+    }
+    const json = await res.json().catch(() => ({ items: [] }));
+    return (json?.items as PhotoItem[]) || [];
+  } catch {
+    // Network/route errors should not break the page; return empty list
+    return [];
+  }
 }
 
 export async function createPhoto(input: {

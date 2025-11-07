@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
+import { formatTime12 } from "@/lib/time";
 import MapCard from "./MapCard";
 
 /* ===== Types (keep aligned with page.tsx) ===== */
@@ -73,12 +74,7 @@ function has(v: unknown): boolean {
 function formatTime(time?: string): string {
   const t = S(time);
   if (!t) return "";
-  try {
-    const d = new Date(`2000-01-01T${t}`);
-    return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
-  } catch {
-    return t;
-  }
+  return formatTime12(t);
 }
 
 /* ===== Status Badge ===== */
@@ -281,19 +277,19 @@ export default function ReportPreview({ form, sectionPhotos, signatureData }: Re
         )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6 pb-6 border-b-2 border-kiwi-dark/20">
-          <GridLine label="Report ID" value={S(form?.reportId)} />
-          <GridLine label="Inspector Name" value={S(form?.inspectorName)} />
+          <GridLine label="Report ID (If any)" value={S(form?.reportId)} />
+          <GridLine label="Name of Inspector" value={S(form?.inspectorName)} />
           <GridLine label="Inspection Date" value={S(form?.inspectionDate)} />
-          <GridLine label="Start Time" value={observationTime} />
+          <GridLine label="Start Time of Inspection" value={observationTime} />
         </div>
 
         <dl className="space-y-0">
-          <Line label="Name and Address of Inspection Company" value={S(form?.nameandAddressOfCompany)} />
+          <Line label="Address of Inspection Company" value={S(form?.nameandAddressOfCompany)} />
           <Line label="Client / Owner Name" value={S(form?.clientName)} />
-          <Line label="Company Name" value={S(form?.companyName)} />
+          <Line label="Inspection Company Name" value={S(form?.companyName)} />
           <Line label="Phone Number of Inspection Company" value={S(form?.contactPhone)} />
           <Line label="Email of Inspection Company" value={S(form?.contactEmail)} />
-          <Line label="Inspection Property Address" value={S(form?.location)} />
+          <Line label="Address of Inspection Property" value={S(form?.location)} />
         </dl>
       </Section>
 
@@ -375,19 +371,7 @@ export default function ReportPreview({ form, sectionPhotos, signatureData }: Re
         </Section>
       )}
 
-      {/* ===== Personnel & Work Progress ===== */}
-      {(has(form?.workerAttendance) || has(form?.scheduleCompliance) || has(form?.materialAvailability) || (buckets.work?.length ?? 0) > 0) && (
-        <Section title="Personnel & Work Progress">
-          <dl className="space-y-0 mb-6">
-            <Line label="All workers present & on time?" value={S(form?.workerAttendance)} />
-            <Line label="Progress vs schedule" value={S(form?.scheduleCompliance)} />
-            <Line label="Materials available & usable?" value={S(form?.materialAvailability)} />
-          </dl>
-          {(buckets.work?.length ?? 0) > 0 && (
-            <PhotoGrid photos={buckets.work} />
-          )}
-        </Section>
-      )}
+      {/* Personnel & Work Progress section removed as requested */}
 
       {/* ===== Field Observation ===== */}
       {(has(form?.fieldObservationText) || (buckets.fieldObservation?.length ?? 0) > 0) && (

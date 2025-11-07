@@ -54,6 +54,7 @@ function getWeatherDescription(code: number): string {
 export default function WeatherPanel({ form, onField, onFetched }: Props) {
   const [loading, setLoading] = useState(false);
   const [errMsg, setErrMsg] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
   const debTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastKeyRef = useRef<string>("");
   const lastAddrRef = useRef<string>("");
@@ -185,6 +186,9 @@ export default function WeatherPanel({ form, onField, onFetched }: Props) {
     }
   }, [form?.lat, form?.lon, fetchWeatherByCoords]);
 
+  // Ensure initial client render matches SSR by showing placeholders until mounted
+  useEffect(() => { setMounted(true); }, []);
+
   const handleUseMyLocation = useCallback(() => {
     setErrMsg(null);
     if (!navigator.geolocation) {
@@ -207,27 +211,20 @@ export default function WeatherPanel({ form, onField, onFetched }: Props) {
     );
   }, [fetchWeatherByCoords, onField]);
 
-  const readings = useMemo(
-    () => [
-      {
-        label: `Temperature (${TEMP_UNIT})`,
-        value: form?.temperature ? String(form.temperature) : FALLBACK,
-      },
-      {
-        label: "Humidity (%)",
-        value: form?.humidity ? String(form.humidity) : FALLBACK,
-      },
-      {
-        label: `Wind (${WIND_UNIT})`,
-        value: form?.windSpeed ? String(form.windSpeed) : FALLBACK,
-      },
-      {
-        label: "Conditions",
-        value: form?.weatherDescription ? String(form.weatherDescription) : FALLBACK,
-      },
-    ],
-    [form?.temperature, form?.humidity, form?.windSpeed, form?.weatherDescription]
-  );
+  const readings = useMemo(() => {
+    const vTemp = form?.temperature ? String(form.temperature) : FALLBACK;
+    const vHum = form?.humidity ? String(form.humidity) : FALLBACK;
+    const vWind = form?.windSpeed ? String(form.windSpeed) : FALLBACK;
+    const vDesc = form?.weatherDescription ? String(form.weatherDescription) : FALLBACK;
+    // On the very first client render (before mounted), force FALLBACK to avoid hydration mismatch
+    const gate = (v: string) => (mounted ? v : FALLBACK);
+    return [
+      { label: `Temperature (${TEMP_UNIT})`, value: gate(vTemp) },
+      { label: "Humidity (%)", value: gate(vHum) },
+      { label: `Wind (${WIND_UNIT})`, value: gate(vWind) },
+      { label: "Conditions", value: gate(vDesc) },
+    ];
+  }, [mounted, form?.temperature, form?.humidity, form?.windSpeed, form?.weatherDescription]);
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-sm">
@@ -245,28 +242,8 @@ export default function WeatherPanel({ form, onField, onFetched }: Props) {
         ))}
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
-          onClick={fetchByAddress}
-          disabled={loading || !addressQuery}
-          title={addressQuery ? `Use address: ${addressQuery}` : "Enter address fields first"}
-        >
-          Use address
-        </button>
-
-        <button
-          type="button"
-          className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
-          onClick={handleUseMyLocation}
-          disabled={loading}
-        >
-          Use my location
-        </button>
-
-        {errMsg && <span className="text-xs font-medium text-red-600">{errMsg}</span>}
-      </div>
+      {/* Location control buttons removed */}
+      {errMsg && <div className="mt-2 text-xs font-medium text-red-600">{errMsg}</div>}
     </div>
   );
 }
