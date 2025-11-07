@@ -215,12 +215,8 @@ You are receiving this email because a login to your account was detected. If yo
 /* ----------------- NextAuth options ----------------- */
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
-<<<<<<< HEAD
-  secret: getEnv("NEXTAUTH_SECRET"),
-=======
   // Prefer NEXTAUTH_SECRET; fall back to AUTH_SECRET (NextAuth v5 naming)
   secret: getEnv("NEXTAUTH_SECRET") || getEnv("AUTH_SECRET"),
->>>>>>> test
   providers: [
     CredentialsProvider({
       name: "Credentials",

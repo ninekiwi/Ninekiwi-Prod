@@ -3,11 +3,7 @@ export default function ProgressBar({ percent }: Props){
   return (
     <div className="bg-white rounded-xl p-4 shadow-sm">
       <div className="flex justify-between items-center mb-2">
-<<<<<<< HEAD
-        <span className="text-sm font-medium">Form Input</span>
-=======
         <span className="text-sm font-medium">Report Progress</span>
->>>>>>> test
         <span className="text-sm text-kiwi-green font-semibold" suppressHydrationWarning>
           {percent}%
         </span>

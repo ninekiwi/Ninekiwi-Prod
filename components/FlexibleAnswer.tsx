@@ -1,8 +1,4 @@
 "use client";
-<<<<<<< HEAD
-import { useEffect, useState } from "react";
-=======
->>>>>>> test
 
 type Mode = "yesno"; // single mode only
 
@@ -12,11 +8,7 @@ export default function FlexibleAnswer({
   value,                        // "Yes" | "No"
   onChange,                     // (mode, value) -> we'll always send ("yesno", ...)
   required = false,
-<<<<<<< HEAD
-  noteValue,                    // shown ONLY when value === "No"
-=======
   noteValue,                    // shown ONLY when value === "Yes"
->>>>>>> test
   onNoteChange,                 // updates the note when typing
   notePlaceholder = "Add details...",
 }: {
@@ -30,11 +22,6 @@ export default function FlexibleAnswer({
   onNoteChange?: (text: string) => void;
   notePlaceholder?: string;
 }) {
-<<<<<<< HEAD
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-=======
->>>>>>> test
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-3">
@@ -60,13 +47,8 @@ export default function FlexibleAnswer({
         ))}
       </div>
 
-<<<<<<< HEAD
-      {/* Auto note input when user chooses No (defer until mounted to avoid hydration mismatch) */}
-      {mounted && value === "No" && (
-=======
       {/* Auto note input when user chooses Yes */}
       {value === "Yes" && (
->>>>>>> test
         <div className="mt-2">
           <textarea
             id={`${id}-note`}
@@ -76,19 +58,11 @@ export default function FlexibleAnswer({
             value={noteValue ?? ""}
             onChange={(e) => onNoteChange?.(e.target.value)}
           />
-<<<<<<< HEAD
-          <p className="text-xs text-gray-500 mt-1">This field appears because you selected "No".</p>
-=======
           <p className="text-xs text-gray-500 mt-1">
             This field appears because you selected “Yes”.
           </p>
->>>>>>> test
         </div>
       )}
     </div>
   );
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> test

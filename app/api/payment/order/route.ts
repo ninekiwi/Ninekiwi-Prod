@@ -18,19 +18,9 @@ export async function POST(req: Request) {
       );
     }
 
-<<<<<<< HEAD
-    if (!amount || Number.isNaN(Number(amount))) {
-      return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
-    }
-    // Enforce business rule: minimum payable amount is 499 (in chosen currency units)
-    if (Number(amount) < 499) {
-      return NextResponse.json({ error: "Minimum payable amount is 499" }, { status: 400 });
-    }
-=======
     if (!amount || Number(amount) <= 0) {
       return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
     }
->>>>>>> test
 
     const instance = new Razorpay({ key_id, key_secret });
 

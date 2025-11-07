@@ -32,15 +32,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
     }
 
-<<<<<<< HEAD
-    // Enforce server-side minimum: reject payments below 499
-    const paidAmount = Number((body as any)?.amount) || 0;
-    if (paidAmount < 499) {
-      return NextResponse.json({ error: "Minimum payable amount is 499" }, { status: 400 });
-    }
-
-=======
->>>>>>> test
     // Persist payment record
     try {
       await dbConnect();
@@ -48,11 +39,7 @@ export async function POST(req: NextRequest) {
         orderId,
         paymentId,
         signature,
-<<<<<<< HEAD
-        amount: paidAmount,
-=======
         amount: Number((body as any)?.amount) || 0,
->>>>>>> test
         currency: String((body as any)?.currency || "INR"),
         description: String((body as any)?.description || ""),
         name: String((body as any)?.name || ""),
