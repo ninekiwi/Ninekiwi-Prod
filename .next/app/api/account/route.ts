@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { dbConnect } from "@/lib/mongodb";
 import { User } from "@/models/User";
-import { cloudinary } from "@/lib/cloudinary";
+import { cloudinary, isCloudinaryConfigured } from "@/lib/cloudinary";
 import { getEnv } from "@/lib/env";
 
 export const runtime = "nodejs";
@@ -58,6 +58,9 @@ export async function PATCH(req: NextRequest) {
 
     let avatarUrl = doc.get("avatarUrl") as string | undefined;
     if (avatarData && avatarData.startsWith("data:")) {
+      if (!isCloudinaryConfigured) {
+        return NextResponse.json({ error: "Cloudinary not configured" }, { status: 500 });
+      }
       const upload = await cloudinary.uploader.upload(avatarData, {
         folder: getEnv("CLOUDINARY_FOLDER") ? `${getEnv("CLOUDINARY_FOLDER")}/avatars` : "ninekiwi/avatars",
         resource_type: "image",
