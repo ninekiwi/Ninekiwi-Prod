@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useMemo } from "react";
 import { formatTime12 } from "@/lib/time";
@@ -305,7 +305,7 @@ export default function ReportPreview({ form, sectionPhotos, signatureData }: Re
           {hasWeatherData && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               {has(form?.temperature) && (
-                <GridLine label="Temperature" value={`${form?.temperature} °C`} />
+                <GridLine label="Temperature" value={`${form?.temperature} Â°C`} />
               )}
               {has(form?.humidity) && (
                 <GridLine label="Humidity" value={`${form?.humidity} %`} />
@@ -372,6 +372,19 @@ export default function ReportPreview({ form, sectionPhotos, signatureData }: Re
       )}
 
       {/* Personnel & Work Progress section removed as requested */}
+      {/* ===== Personnel & Work Progress ===== */}
+      {(has(form?.workerAttendance) || has(form?.scheduleCompliance) || has(form?.materialAvailability) || (buckets.work?.length ?? 0) > 0) && (
+        <Section title="Personnel & Work Progress">
+          <dl className="space-y-0 mb-6">
+            <Line label="All workers present & on time?" value={S(form?.workerAttendance)} />
+            <Line label="Progress vs schedule" value={S(form?.scheduleCompliance)} />
+            <Line label="Materials available & usable?" value={S(form?.materialAvailability)} />
+          </dl>
+          {(buckets.work?.length ?? 0) > 0 && (
+            <PhotoGrid photos={buckets.work} />
+          )}
+        </Section>
+      )}
 
       {/* ===== Field Observation ===== */}
       {(has(form?.fieldObservationText) || (buckets.fieldObservation?.length ?? 0) > 0) && (
@@ -434,7 +447,7 @@ export default function ReportPreview({ form, sectionPhotos, signatureData }: Re
                 {S(form?.inspectorName) || "Inspector"}
               </div>
               <div className="text-sm text-gray-600">
-                Signed on: {S(form?.signatureDateTime) || "—"}
+                Signed on: {S(form?.signatureDateTime) || "â€”"}
               </div>
             </div>
           </div>
@@ -465,3 +478,4 @@ export default function ReportPreview({ form, sectionPhotos, signatureData }: Re
     </div>
   );
 }
+

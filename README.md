@@ -3,6 +3,17 @@
 **NineKiwi** is a modern, multilingual, mobile-first project management platform tailored for the diverse construction ecosystem. It empowers construction teams to generate professional PDF reports on-site, facilitating seamless communication and efficient project management.
 
 ---
+<<<<<<< HEAD
+=======
+
+## 🚀 Live Demo
+
+Experience NineKiwi in action:
+
+👉 [nine-kiwi-nextjs-ibx7.vercel.app](https://nine-kiwi-nextjs-ibx7.vercel.app/)
+
+---
+>>>>>>> 01ca953cebec308036f0219d017b0b68ffd7749a
  
 ## 🔧 Features
 
@@ -54,7 +65,34 @@ Run the development server:
 ```bash
 npm run dev
 ```
+<<<<<<< HEAD
  
 ## 📧 Contact
 
 For inquiries or support, please reach out to hello@ninekiwi.com
+=======
+
+Access the application at [http://localhost:3000](http://localhost:3000).
+
+---
+
+## 📄 PDF Report Example
+
+To view a sample generated PDF report:
+
+👉 [Sample Report](https://drive.google.com/file/d/12WFixQywXWV4ZBBfC1EDv8OL-vJStAg3/view?usp=sharing)
+
+---
+
+## 🧪 Contributing
+
+Contributions are welcome! Please fork this repository, create a new branch, and submit a pull request with your proposed changes.
+
+---
+
+## 📧 Contact
+
+For inquiries or support, please reach out to nehasaniya465@gmail.com  
+
+ 
+>>>>>>> 01ca953cebec308036f0219d017b0b68ffd7749a

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -225,6 +225,7 @@ export default function WeatherPanel({ form, onField, onFetched }: Props) {
       { label: "Conditions", value: gate(vDesc) },
     ];
   }, [mounted, form?.temperature, form?.humidity, form?.windSpeed, form?.weatherDescription]);
+ 
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-sm">
@@ -242,8 +243,9 @@ export default function WeatherPanel({ form, onField, onFetched }: Props) {
         ))}
       </div>
 
-      {/* Location control buttons removed */}
+      {/* Action buttons explicitly removed per request */}
       {errMsg && <div className="mt-2 text-xs font-medium text-red-600">{errMsg}</div>}
     </div>
   );
 }
+

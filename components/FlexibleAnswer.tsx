@@ -1,16 +1,16 @@
-"use client";
+﻿"use client";
 import { useEffect, useState } from "react";
 
-type Mode = "yesno"; // single mode only
+type Mode = "yesno";
 
 export default function FlexibleAnswer({
   id,
   label,
-  value,                        // "Yes" | "No"
-  onChange,                     // (mode, value) -> we'll always send ("yesno", ...)
+  value,
+  onChange,
   required = false,
-  noteValue,                    // shown ONLY when value matches noteOnValue
-  onNoteChange,                 // updates the note when typing
+  noteValue,
+  onNoteChange,
   notePlaceholder = "Add details...",
   noteOnValue = "No",
 }: {
@@ -19,7 +19,6 @@ export default function FlexibleAnswer({
   value: string; // "Yes" | "No"
   onChange: (mode: Mode, value: string) => void;
   required?: boolean;
-
   noteValue?: string;
   onNoteChange?: (text: string) => void;
   notePlaceholder?: string;
@@ -28,6 +27,7 @@ export default function FlexibleAnswer({
 }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-3">
@@ -37,7 +37,6 @@ export default function FlexibleAnswer({
         </label>
       </div>
 
-      {/* Yes / No */}
       <div className="flex gap-4">
         {["Yes", "No"].map((v) => (
           <label key={v} className="flex items-center gap-2">
@@ -53,7 +52,6 @@ export default function FlexibleAnswer({
         ))}
       </div>
 
-      {/* Auto note input when user chooses the triggering value (defer until mounted to avoid hydration mismatch) */}
       {mounted && value === noteOnValue && (
         <div className="mt-2">
           <textarea

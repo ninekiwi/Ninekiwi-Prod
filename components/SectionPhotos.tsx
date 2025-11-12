@@ -30,7 +30,38 @@ export default function SectionPhotos({ title, photos, setPhotos, summaryToggle,
         (file) =>
           new Promise<UPhoto>((res) => {
             const r = new FileReader();
-            r.onload = () => res({ name: file.name, data: String(r.result || ""), section });
+            r.onload = async () => {
+              try {
+                const src = String(r.result || "");
+                // Downscale very large images to improve mobile stability
+                const out = await new Promise<string>((done) => {
+                  try {
+                    const im = new Image();
+                    im.onload = () => {
+                      try {
+                        const maxW = 2000;
+                        const maxH = 2000;
+                        let w = im.naturalWidth || im.width || 1;
+                        let h = im.naturalHeight || im.height || 1;
+                        const scale = Math.min(1, Math.min(maxW / w, maxH / h));
+                        if (scale < 1) { w = Math.round(w * scale); h = Math.round(h * scale); }
+                        const c = document.createElement('canvas');
+                        c.width = w; c.height = h;
+                        const ctx = c.getContext('2d');
+                        if (ctx) ctx.drawImage(im, 0, 0, w, h);
+                        const dst = c.toDataURL('image/jpeg', 0.88);
+                        done(dst || src);
+                      } catch { done(src); }
+                    };
+                    im.onerror = () => done(src);
+                    im.src = src;
+                  } catch { done(src); }
+                });
+                res({ name: file.name, data: out, section });
+              } catch {
+                res({ name: file.name, data: String(r.result || ""), section });
+              }
+            };
             r.readAsDataURL(file);
           })
       );
@@ -52,10 +83,23 @@ export default function SectionPhotos({ title, photos, setPhotos, summaryToggle,
     try {
       const input = document.createElement("input");
       input.type = "file";
-      input.accept = "image/*";
+      // Prefer opening camera on mobile devices
+      input.accept = "image/*;capture=camera";
       // @ts-ignore
       input.capture = "environment";
-      input.onchange = (ev: any) => addFiles(ev.target.files);
+      input.style.position = "fixed";
+      input.style.left = "-10000px";
+      input.style.top = "-10000px";
+      document.body.appendChild(input);
+      input.onchange = (ev: any) => {
+        try {
+          ev?.preventDefault?.();
+          ev?.stopPropagation?.();
+          addFiles(ev.target.files);
+        } finally {
+          input.remove();
+        }
+      };
       input.click();
     } catch {
       fileRef.current?.click();
@@ -83,6 +127,7 @@ export default function SectionPhotos({ title, photos, setPhotos, summaryToggle,
 
       <div className="flex gap-2 mb-6">
         <button
+          type="button"
           onClick={() => fileRef.current?.click()}
           className="flex-1 bg-kiwi-green text-white px-4 py-3 rounded-lg font-semibold hover:bg-[#78c850] transition-all hover:scale-105 flex items-center justify-center gap-2"
         >
@@ -92,6 +137,7 @@ export default function SectionPhotos({ title, photos, setPhotos, summaryToggle,
           Add photo
         </button>
         <button
+          type="button"
           onClick={captureFromCamera}
           className="flex-1 bg-[#78c850] text-white px-4 py-3 rounded-lg font-semibold hover:bg-[#78c850] transition-all hover:scale-105 flex items-center justify-center gap-2"
         >
@@ -111,12 +157,23 @@ export default function SectionPhotos({ title, photos, setPhotos, summaryToggle,
       <input
         ref={fileRef}
         type="file"
-        accept="image/*"
+        // Hint to open camera directly on mobile (iOS/Android)
+        accept="image/*;capture=camera"
+        // @ts-ignore
+        capture="environment"
         multiple
         className="hidden"
         onChange={(e) => {
+          try {
+            e.preventDefault();
+            e.stopPropagation();
+          } catch {}
           addFiles(e.target.files);
           e.currentTarget.value = "";
+        }}
+        onKeyDown={(e) => {
+          // Prevent accidental form submissions on Enter in rare wrappers
+          e.preventDefault();
         }}
       />
 
@@ -139,6 +196,7 @@ export default function SectionPhotos({ title, photos, setPhotos, summaryToggle,
                   Photo {p.figureNumber ?? idx + 1}
                 </span>
                 <button
+                  type="button"
                   onClick={() => removeAt(idx)}
                   aria-label={`Remove photo ${idx + 1}`}
                   className="text-red-500 hover:text-red-700 font-semibold text-sm bg-red-50 px-3 py-1 rounded-lg hover:bg-red-100 transition-colors"
@@ -172,6 +230,7 @@ export default function SectionPhotos({ title, photos, setPhotos, summaryToggle,
     </div>
   );
 }
+
 
 
 

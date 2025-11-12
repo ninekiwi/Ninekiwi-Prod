@@ -783,8 +783,8 @@ export default function Page() {
       {/* Fixed Header with improved styling */}
       <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm shadow-md border-b border-gray-200 z-40">
         <div className="container mx-auto px-4 sm:px-6 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="grid grid-cols-[1fr_auto] items-center">
+            <div className="flex items-center gap-3 min-w-0">
               <Link href="/" className="w-10 h-10 rounded-xl grid place-items-center hover:opacity-80 transition-opacity">
                 <Image src="/logo.png" alt="nineKiwi_logo" width={40} height={40} priority />
               </Link>
@@ -887,7 +887,7 @@ export default function Page() {
       )}
 
       {/* Main Content with top padding to account for fixed header */}
-      <main className="container mx-auto px-4 sm:px-6 py-8 pt-24">
+      <main className="container mx-auto px-4 sm:px-6 py-8 pt-28 md:pt-24">
         {!disclaimerAccepted && !disclaimerDismissed && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
             <div className="relative bg-white max-w-3xl w-[92vw] md:w-[780px] rounded-xl shadow-xl p-6 overflow-auto max-h-[85vh]">
@@ -988,9 +988,7 @@ export default function Page() {
 
                 {/* Report ID */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="reportId">
-                    Report ID (If any)
-                  </label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="reportId">Report ID (If any)</label>
                   <input
                     id="reportId"
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#78c850] focus:border-transparent transition-shadow"
@@ -1002,9 +1000,7 @@ export default function Page() {
 
                 {/* Inspector Name */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="inspectorName">
-                    Name of Inspector
-                  </label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="inspectorName">Name of Inspector</label>
                   <input
                     id="inspectorName"
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#78c850] focus:border-transparent transition-shadow"
@@ -1016,9 +1012,7 @@ export default function Page() {
 
                 {/* Company Address */}
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="nameandAddressOfCompany">
-                    Address of Inspection Company
-                  </label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="nameandAddressOfCompany">Address of Inspection Company</label>
                   <input
                     id="nameandAddressOfCompany"
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#78c850] focus:border-transparent transition-shadow"
@@ -1044,9 +1038,7 @@ export default function Page() {
 
                 {/* Company Name */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="companyName">
-                    Inspection Company Name
-                  </label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="companyName">Inspection Company Name</label>
                   <input
                     id="companyName"
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#78c850] focus:border-transparent transition-shadow"
@@ -1119,13 +1111,11 @@ export default function Page() {
 
                 {/* Location */}
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="location">
-                    Address of Inspection Property
-                  </label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="location">Address of Inspection Property</label>
                   <input
                     id="location"
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#78c850] focus:border-transparent transition-shadow"
-                    placeholder="Ambedkar Nagar Gali No. 4, Jwalapur, Haridwar"
+                    placeholder="Enter your address of inspection property"
                     value={form.location}
                     onChange={(e) => updateField("location", e.target.value)}
                   />
@@ -1371,9 +1361,7 @@ export default function Page() {
             <div className="form-section bg-white rounded-xl p-6 shadow-sm border border-gray-100 fade-in">
               <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">Field Observation</h2>
 
-              <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="fieldObservationText">
-                Field Observation 
-              </label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="fieldObservationText">Field Observation </label>
               <textarea
                 id="fieldObservationText"
                 rows={4}
@@ -1409,9 +1397,7 @@ export default function Page() {
 
             {/* Notes & Summary */}
             <div className="form-section bg-white rounded-xl p-6 shadow-sm border border-gray-100 fade-in">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-                Additional Notes (if any)
-              </h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">Additional Notes (if any)</h2>
               <div className="space-y-5">
                 {(
                   [
@@ -1438,9 +1424,7 @@ export default function Page() {
 
             {/* Additional Images */}
             <div className="form-section bg-white rounded-xl p-6 shadow-sm border border-gray-100 fade-in">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">
-                Add more Photos (optional)
-              </h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-3 border-b border-gray-200">Add more Photos (optional)</h2>
               <SectionPhotos
                 title=""
                 photos={sectionPhotos.additional}
@@ -1526,9 +1510,7 @@ export default function Page() {
       
       {/* Offline Indicator */}
       {mounted && !isOnline && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-yellow-50 text-yellow-900 border border-yellow-300 px-4 py-3 rounded-lg shadow-lg font-medium">
-          Are you offline ?? (Progress is saved locally).
-        </div>
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-yellow-50 text-yellow-900 border border-yellow-300 px-4 py-3 rounded-lg shadow-lg font-medium">Are you offline ?? (Progress is saved locally).</div>
       )}
 
       {/* PDF Generation Overlay */}
@@ -1550,7 +1532,6 @@ export default function Page() {
     </div>
   );
 }
-
 
 
 

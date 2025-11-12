@@ -82,6 +82,8 @@ const THEME_CSS = `
   margin: 0 0 6mm 0;
   padding-bottom: 2.5mm;
   border-bottom: 1px solid #222;
+  position: relative;
+  z-index: 2;
 }
 .nk-head-title {
   text-align: center;
@@ -191,9 +193,11 @@ em { font-style: italic; }
 /* Photo layouts (edge-to-edge, large) */
 .nk-photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; margin-top: 2mm; }
 .nk-photo-grid.single { grid-template-columns: 1fr; }
-.nk-photo-card { page-break-inside: avoid; margin-bottom: 6mm; background: transparent; border: 0; border-radius: 0; }
-.nk-photo-img-wrap { background: transparent; min-height: auto; max-height: 150mm; width: 100%; display: flex; align-items: center; justify-content: center; padding: 0; border-bottom: 0; }
-.nk-photo-img { display: block !important; max-width: 100% !important; height: auto !important; object-fit: contain !important; }
+.nk-photo-card { page-break-inside: avoid; margin-bottom: 6mm; background: transparent; border: 0; border-radius: 0; position: relative; }
+.nk-photo-img-wrap { background: transparent; min-height: auto; max-height: 150mm; width: 100%; display: flex; align-items: center; justify-content: center; padding: 0; border-bottom: 0; position: relative; z-index: 1; }
+.nk-photo-img { display: block !important; max-width: 100% !important; height: auto !important; max-height: 150mm !important; object-fit: contain !important; }
+.nk-block-title, .nk-callout { position: relative; z-index: 2; page-break-inside: avoid; }
+img { max-width: 100% !important; height: auto !important; }
 .nk-caption { margin: 3mm 0 0 0; padding: 0; font-size: 10pt; font-weight: 600; text-align: center; line-height: 1.4; color: #000 !important; }
 .nk-desc { margin: 2mm 0 0 0; padding: 0; font-size: 9.5pt; line-height: 1.5; text-align: justify; background: transparent; color: #333 !important; border: 0; word-break: break-word; }
 
@@ -261,9 +265,7 @@ async function buildSiteMapFromForm(form: FormData): Promise<PhotoData | undefin
   } catch { return undefined; }
 }
 
-function formatTime12(t?: string): string {
-  return formatTime12Stable(t);
-}
+function formatTime12(t?: string): string { return formatTime12Stable(t); }
 
 const joinAddress = (form: FormData): string => {
   const parts = [
@@ -381,7 +383,6 @@ async function waitForImages(root: HTMLElement): Promise<void> {
             const src = img.getAttribute("src") || "";
             if (/^https?:/i.test(src)) await toData(src);
           }
-          // If the data URL is a format Word can't render (e.g., webp/avif), convert to JPEG
           const ensureWordFriendly = async () => {
             try {
               const srcNow = img.getAttribute("src") || "";
@@ -409,25 +410,7 @@ async function waitForImages(root: HTMLElement): Promise<void> {
             } catch {}
           };
           await ensureWordFriendly();
-          // If already loaded
           if (img.complete && img.naturalHeight > 0) {
-            // Ensure width/height attributes for better DOCX conversion
-            try {
-              const maxPageWidthPx = 700; // ~7.3in at ~96 dpi; fits A4 with margins
-              const nw = img.naturalWidth || 1;
-              const nh = img.naturalHeight || 1;
-              const scale = nw > maxPageWidthPx ? maxPageWidthPx / nw : 1;
-              const w = Math.max(1, Math.round(nw * scale));
-              const h = Math.max(1, Math.round(nh * scale));
-              img.setAttribute("width", String(w));
-              img.setAttribute("height", String(h));
-              img.style.width = `${w}px`;
-              img.style.height = `${h}px`;
-            } catch {}
-            return resolve();
-          }
-          const done = () => {
-            // After load/error, set attributes if possible
             try {
               const maxPageWidthPx = 700;
               const nw = img.naturalWidth || 1;
@@ -437,8 +420,23 @@ async function waitForImages(root: HTMLElement): Promise<void> {
               const h = Math.max(1, Math.round(nh * scale));
               img.setAttribute("width", String(w));
               img.setAttribute("height", String(h));
-              img.style.width = `${w}px`;
-              img.style.height = `${h}px`;
+              (img.style as any).width = `${w}px`;
+              (img.style as any).height = `${h}px`;
+            } catch {}
+            return resolve();
+          }
+          const done = () => {
+            try {
+              const maxPageWidthPx = 700;
+              const nw = img.naturalWidth || 1;
+              const nh = img.naturalHeight || 1;
+              const scale = nw > maxPageWidthPx ? maxPageWidthPx / nw : 1;
+              const w = Math.max(1, Math.round(nw * scale));
+              const h = Math.max(1, Math.round(nh * scale));
+              img.setAttribute("width", String(w));
+              img.setAttribute("height", String(h));
+              (img.style as any).width = `${w}px`;
+              (img.style as any).height = `${h}px`;
             } catch {}
             resolve();
           };
@@ -1418,5 +1416,4 @@ export async function saveReportToDatabase(
     throw error;
   }
 }
-
-
+ 

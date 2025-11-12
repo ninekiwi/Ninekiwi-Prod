@@ -60,9 +60,7 @@ export default function LandingPage() {
             <div className="report-card-gradient rounded-3xl shadow-2xl overflow-hidden">
               <div className="grid grid-cols-1 md:grid-cols-2 items-center gap-8 md:gap-12 p-8 md:p-16">
                 <div className="text-white z-10 animated-element">
-                  <h2 className="text-3xl md:text-4xl font-heading font-bold mb-4">
-                    Report Generator Tool
-                  </h2>
+                  <h2 className="text-3xl md:text-4xl font-heading font-bold mb-4">Report Generator Tool</h2>
                   <p className="text-lg text-kiwi-light mb-6">
                     Instantly generate professional PDF reports for your
                     construction projects.
