@@ -6,6 +6,7 @@ import { Report } from "@/models/Report";
 import { Photo } from "@/models/Photo";
 import { cloudinary } from "@/lib/cloudinary";
 import { User } from "@/models/User";
+import { Types } from "mongoose";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,15 +24,22 @@ export async function GET(req: NextRequest) {
   const q: any = {};
   if (userId) q.userId = userId;
   if (reportId) q.reportId = reportId;
-  const reports = await Report.find(q).sort({ updatedAt: -1 }).lean();
-  const userIds = Array.from(new Set(reports.map((r) => r.userId)));
-  const users = await User.find({ _id: { $in: userIds } }, { password: 0 }).lean();
-  const userMap = new Map(users.map((u) => [String(u._id), u]));
-  const items = reports.map((r) => ({
-    ...r,
-    user: userMap.get(String(r.userId)) || null,
-  }));
-  return NextResponse.json({ items });
+  try {
+    const reports = await Report.find(q).sort({ updatedAt: -1 }).lean();
+    const userIds = Array.from(new Set(reports.map((r) => String(r.userId))));
+    const validUserIds = userIds.filter((id) => Types.ObjectId.isValid(id));
+    const users = validUserIds.length
+      ? await User.find({ _id: { $in: validUserIds } }, { password: 0 }).lean()
+      : [];
+    const userMap = new Map(users.map((u) => [String(u._id), u]));
+    const items = reports.map((r) => ({
+      ...r,
+      user: userMap.get(String(r.userId)) || null,
+    }));
+    return NextResponse.json({ items });
+  } catch (err: any) {
+    return NextResponse.json({ error: err?.message || "Failed to load reports" }, { status: 500 });
+  }
 }
 
 export async function DELETE(req: NextRequest) {

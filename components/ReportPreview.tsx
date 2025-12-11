@@ -237,6 +237,7 @@ export default function ReportPreview({ form, sectionPhotos, signatureData }: Re
         additional: [],
         background: [],
         fieldObservation: [],
+        map: [],
       },
     [sectionPhotos]
   );
@@ -327,6 +328,10 @@ export default function ReportPreview({ form, sectionPhotos, signatureData }: Re
                 className="nk-print-map w-full h-80"
               />
             </div>
+          )}
+
+          {(buckets.map?.length ?? 0) > 0 && (
+            <PhotoGrid photos={buckets.map} />
           )}
 
           {(buckets.weather?.length ?? 0) > 0 && (

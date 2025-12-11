@@ -106,6 +106,25 @@ export async function generateFullReportDOCXEditable(
   const table = new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows });
   children.push(table);
 
+  // Optional site map image (prefer manual map photo)
+  const mapPhotos = sectionPhotos.map || [];
+  const siteMapFinal = _options?.includeSiteMap === false ? undefined : (siteMap || mapPhotos[0]);
+  if (siteMapFinal && siteMapFinal.data) {
+    try {
+      const d = siteMapFinal.data.startsWith("http") ? await fetchToDataURL(siteMapFinal.data) : siteMapFinal.data;
+      if (d && d.startsWith("data:")) {
+        const buf = dataUrlToUint8Array(d);
+        const type = imageTypeFromDataURL(d);
+        if (buf.length) {
+          children.push(new Paragraph({ text: "Site Location Map", heading: HeadingLevel.HEADING_2 }));
+          children.push(new Paragraph({ children: [ new ImageRun({ data: buf, type, transformation: { width: 520, height: 300 } }) ] }));
+          if (S(siteMapFinal.caption)) children.push(new Paragraph({ children: [ new TextRun({ text: S(siteMapFinal.caption), bold: true }) ] }));
+          if (S(siteMapFinal.description)) children.push(new Paragraph({ children: [ new TextRun({ text: S(siteMapFinal.description) }) ] }));
+        }
+      }
+    } catch {}
+  }
+
   // Background
   children.push(new Paragraph({ text: "2. Background", heading: HeadingLevel.HEADING_1 }));
   const backgroundHTML = [ S(form.backgroundManual), S(form.backgroundAuto) ].filter(Boolean).join("\n\n");
@@ -117,6 +136,8 @@ export async function generateFullReportDOCXEditable(
 
   // Photos sequence (images remain images; captions/descriptions editable)
   const seq: PhotoData[] = [];
+  const remainingMap = siteMapFinal && mapPhotos.length ? mapPhotos.slice(siteMapFinal === mapPhotos[0] ? 1 : 0) : mapPhotos;
+  remainingMap.forEach((p)=>seq.push(p));
   (sectionPhotos.background || []).forEach((p)=>seq.push(p));
   (sectionPhotos.fieldObservation || []).forEach((p)=>seq.push(p));
   (sectionPhotos.additional || []).forEach((p)=>seq.push(p));

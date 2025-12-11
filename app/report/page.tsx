@@ -330,6 +330,7 @@ export default function Page() {
     // NEW buckets
     background: [],
     fieldObservation: [],
+    map: [],
   });
 
   const [signatureData, setSignatureData] = useState<string | null>(null);
@@ -548,13 +549,14 @@ export default function Page() {
   }, [sectionPhotos]);
 
   const summaryPhotosU = useMemo(() => {
+    const map = adaptPhotos((sectionPhotos.map || []) as any);
     const bg = adaptPhotos((sectionPhotos.background || []) as any);
     const fo = adaptPhotos((sectionPhotos.fieldObservation || []) as any);
     const add = adaptPhotos((sectionPhotos.additional || []) as any);
-    const all = [...bg, ...fo, ...add];
+    const all = [...map, ...bg, ...fo, ...add];
     const selected = all.filter((p: any) => (p as any)?.includeInSummary);
     return selected.length ? selected : all;
-  }, [sectionPhotos.background, sectionPhotos.fieldObservation, sectionPhotos.additional]);
+  }, [sectionPhotos.map, sectionPhotos.background, sectionPhotos.fieldObservation, sectionPhotos.additional]);
 
   /* ---------------- Derived ---------------- */
   const filledPercent = useMemo(() => {
@@ -1203,7 +1205,19 @@ export default function Page() {
                 }
                 onCoords={(lat, lon) => { updateField("lat", String(lat)); updateField("lon", String(lon)); }}
               />
-              
+
+              <div className="mt-5">
+                <div className="mb-2 text-sm text-gray-600">
+                  Add a map screenshot or annotated site layout (optional). These map photos will appear in the report/PDF.
+                </div>
+                <SectionPhotos
+                  title="Site Map Photos"
+                  photos={sectionPhotos.map}
+                  setPhotos={setPhotoBucket("map")}
+                  section="map"
+                />
+              </div>
+
               {/* Map PDF controls removed */}
 
               <div className="mt-5">
@@ -1451,8 +1465,9 @@ export default function Page() {
                   setPdfElapsed(0); 
                   const timer = setInterval(() => setPdfElapsed((s) => s + 1), 1000);
                   const photos = { ...adaptedSectionPhotos } as any;
+                  const includeSiteMap = (sectionPhotos.map?.length || 0) > 0;
                   try { 
-                    await generateFullReportPDF(form as any, photos as any, signatureData, undefined, { includeSiteMap: false }); 
+                    await generateFullReportPDF(form as any, photos as any, signatureData, undefined, { includeSiteMap }); 
                   } catch (e) {
                     console.error("PDF generation failed", e);
                     alert("Failed to generate PDF. Please try again or try fewer/lower-res photos.");
@@ -1475,8 +1490,9 @@ export default function Page() {
                   setPdfElapsed(0);
                   const timer = setInterval(() => setPdfElapsed((s) => s + 1), 1000);
                   const photos = { ...adaptedSectionPhotos } as any;
+                  const includeSiteMap = (sectionPhotos.map?.length || 0) > 0;
                   try {
-                    await generateFullReportDOCX(form as any, photos as any, signatureData, undefined, { includeSiteMap: false });
+                    await generateFullReportDOCX(form as any, photos as any, signatureData, undefined, { includeSiteMap });
                   } finally {
                     clearInterval(timer);
                     setPdfGenerating(false);

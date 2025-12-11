@@ -777,11 +777,13 @@ function buildBodyHTML(
   backgroundHTML: string,
   buckets: Record<string, PhotoData[]>,
   fieldText?: string,
-  siteMap?: PhotoData
+  siteMap?: PhotoData,
+  mapPhotos: PhotoData[] = []
 ): string {
   const h = (f: FormData) => headerBar(f);
   const ftr = () => footerBar();
   let photoNum = 1;
+  const mapList = mapPhotos && mapPhotos.length ? mapPhotos : (buckets as any).map || [];
 
   /* PAGE 1 — Image-2 style: one KV table with Field/Details, no images */
   const page1 = `
@@ -793,10 +795,13 @@ function buildBodyHTML(
   </div>`;
 
   /* Optional Site Map page */
+  const primarySiteMap = siteMap || (mapList.length ? mapList[0] : undefined);
   const siteMapHTML = (() => {
-    if (!siteMap || !siteMap.data) return "";
-    const isRemote = siteMap.data.startsWith("http");
-    const srcAttr = isRemote ? `data-image-src="${siteMap.data}" src=""` : `src="${siteMap.data}"`;
+    if (!primarySiteMap || !primarySiteMap.data) return "";
+    const isRemote = primarySiteMap.data.startsWith("http");
+    const srcAttr = isRemote ? `data-image-src="${primarySiteMap.data}" src=""` : `src="${primarySiteMap.data}"`;
+    const caption = S(primarySiteMap.caption);
+    const desc = S(primarySiteMap.description);
     return `
       <div class="nk-page">
         ${h(form)}
@@ -805,12 +810,44 @@ function buildBodyHTML(
           <div class="nk-photo-img-wrap" style="max-height: 150mm;">
             <img class="nk-photo-img" ${srcAttr} alt="Site Map" loading="eager" />
           </div>
-          <div class="nk-caption">${S(siteMap.caption) || "Site location map"}</div>
-          ${S(siteMap.description) ? `<div class="nk-desc">${S(siteMap.description)}</div>` : ""}
+          ${caption ? `<div class="nk-caption">${caption}</div>` : ""}
+          ${desc ? `<div class="nk-desc">${desc}</div>` : ""}
         </div>
         ${ftr()}
       </div>`;
   })();
+
+  const extraMapPhotos = mapList.length && primarySiteMap === mapList[0] ? mapList.slice(1) : mapList;
+  const mapPhotosSection =
+    (extraMapPhotos?.length ?? 0) > 0
+      ? (() => {
+          const cards = extraMapPhotos
+            .map((p: PhotoData) => {
+              const isRemote = p.data && p.data.startsWith("http");
+              const srcAttr = isRemote ? `data-image-src="${p.data}" src=""` : `src="${p.data}"`;
+              const caption = S(p.caption);
+              const desc = S(p.description);
+              return `
+                <div class="nk-photo-card">
+                  <div class="nk-photo-img-wrap">
+                    <img class="nk-photo-img" ${srcAttr} alt="Map photo" loading="eager" />
+                  </div>
+                  ${caption ? `<div class="nk-caption">${caption}</div>` : ""}
+                  ${desc ? `<div class="nk-desc">${desc}</div>` : ""}
+                </div>`;
+            })
+            .join("");
+          return `
+            <div class="nk-page">
+              ${h(form)}
+              <div class="nk-block-title">Site Map Photos</div>
+              <div class="nk-photo-grid single">
+                ${cards}
+              </div>
+              ${ftr()}
+            </div>`;
+        })()
+      : "";
 
   /* BACKGROUND (narrative only) */
   const highlightsHTML = backgroundHighlights(form); // empty
@@ -897,6 +934,7 @@ function buildBodyHTML(
   /* Final order */
   return page1
     + siteMapHTML
+    + mapPhotosSection
     + backgroundSection
     + fieldObsSection
     + additionalSection
@@ -964,6 +1002,7 @@ export async function generateFullReportPDF(
   ];
 
   const buckets: Record<string, PhotoData[]> = {
+    map: sectionPhotos?.map || [],
     background: sectionPhotos?.background || [],
     fieldObservation: sectionPhotos?.fieldObservation || [],
     work: sectionPhotos?.work || [],
@@ -982,13 +1021,14 @@ export async function generateFullReportPDF(
   ].filter(Boolean).join("");
 
   const formPlus = signatureData ? { ...form, signatureData } : form;
-  const siteMapFinal = options?.includeSiteMap === false ? undefined : (siteMap || await buildSiteMapFromForm(formPlus));
+  const manualSiteMap = (buckets.map && buckets.map.length) ? buckets.map[0] : undefined;
+  const siteMapFinal = options?.includeSiteMap === false ? undefined : (siteMap || manualSiteMap || await buildSiteMapFromForm(formPlus));
 
   const html =
     coverPage(formPlus) +
     disclaimerPage(formPlus) +
     tocPage(formPlus, toc) +
-    buildBodyHTML(formPlus, backgroundHTML, buckets, formPlus.fieldObservationText, siteMapFinal);
+    buildBodyHTML(formPlus, backgroundHTML, buckets, formPlus.fieldObservationText, siteMapFinal, buckets.map || []);
 
   const cleanup = mount(html);
   try {
@@ -1324,6 +1364,7 @@ export async function generateFullReportDOCX(
   ];
 
   const buckets: Record<string, PhotoData[]> = {
+    map: sectionPhotos?.map || [],
     background: sectionPhotos?.background || [],
     fieldObservation: sectionPhotos?.fieldObservation || [],
     work: sectionPhotos?.work || [],
@@ -1339,13 +1380,14 @@ export async function generateFullReportDOCX(
     bgAuto,
   ].filter(Boolean).join("");
 
-  const siteMapFinal = options?.includeSiteMap === false ? undefined : (siteMap || await buildSiteMapFromForm(formPlus));
+  const manualSiteMap = (buckets.map && buckets.map.length) ? buckets.map[0] : undefined;
+  const siteMapFinal = options?.includeSiteMap === false ? undefined : (siteMap || manualSiteMap || await buildSiteMapFromForm(formPlus));
 
   const html =
     coverPage(formPlus) +
     disclaimerPage(formPlus) +
     tocPage(formPlus, toc) +
-    buildBodyHTML(formPlus, backgroundHTML, buckets, formPlus.fieldObservationText, siteMapFinal);
+    buildBodyHTML(formPlus, backgroundHTML, buckets, formPlus.fieldObservationText, siteMapFinal, buckets.map || []);
 
   const cleanup = mount(html);
   try {
@@ -1391,6 +1433,7 @@ export async function saveReportToDatabase(
 ): Promise<string> {
   try {
     const allPhotos = [
+      ...(photos.map || []),
       ...(photos.background || []),
       ...(photos.fieldObservation || []),
       ...(photos.work || []),
